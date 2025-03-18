@@ -2,7 +2,7 @@
 # Raycast parameters
 # @raycast.schemaVersion 1
 # @raycast.title Run File
-# @raycast.mode fullOutput
+# @raycast.mode silent
 # @raycast.icon 🚀
 # @raycast.packageName Custom
 # @raycast.description Run selected shell or python script
