@@ -33,9 +33,6 @@ TEMP_DIR=$(mktemp -d)
 FILE_COUNT=0
 VALID_COUNT=0
 
-# Array to store process IDs
-declare -a PIDS=()
-
 # Function to run a single file and capture its output
 run_file() {
     local file="$1"
@@ -57,21 +54,49 @@ run_file() {
         (
             cd "$script_dir"
             if [ "$file_ext" = "py" ]; then
-                "$PYTHON_PATH" "$file" > "$log_file" 2>&1
+                # Find PyQt6 plugins directory
+                local PYQT_PATH=$("$PYTHON_PATH" -c "
+import sys
+try:
+    import PyQt6
+    print(PyQt6.__path__[0])
+except ImportError:
+    print('')
+")
+                
+                if [ -n "$PYQT_PATH" ]; then
+                    # For PyQt6
+                    local QT_PATH="$PYQT_PATH/Qt6"
+                    
+                    # Set Qt plugin paths
+                    export QT_PLUGIN_PATH="$QT_PATH/plugins"
+                    export QT_QPA_PLATFORM_PLUGIN_PATH="$QT_PATH/plugins/platforms"
+                    
+                    # Log paths for debugging
+                    echo "Using PyQt6 path: $PYQT_PATH" >> "$log_file"
+                    echo "Qt plugins path: $QT_PLUGIN_PATH" >> "$log_file"
+                    echo "Qt platform plugins path: $QT_QPA_PLATFORM_PLUGIN_PATH" >> "$log_file"
+                    
+                    # Ensure macOS library paths are correct
+                    export DYLD_LIBRARY_PATH="$QT_PATH/lib:$DYLD_LIBRARY_PATH"
+                    export DYLD_FRAMEWORK_PATH="$QT_PATH/lib:$DYLD_FRAMEWORK_PATH"
+                fi
+                
+                # Set debugging for Qt
+                export QT_DEBUG_PLUGINS=1
+                
+                # Run the Python script
+                "$PYTHON_PATH" "$file" >> "$log_file" 2>&1
             else
                 "$file" > "$log_file" 2>&1
             fi
             
             # Store exit code
             echo $? > "$success_log"
-        ) &
-        
-        # Return the process ID
-        echo $!
+        )
     else
         echo "❌ File $(basename "$file") is not a shell script or python file" > "$log_file"
         echo "1" > "$success_log"
-        echo "0" # Return dummy PID
     fi
 }
 
@@ -90,10 +115,8 @@ while IFS= read -r file; do
     # Check if it's a valid file type
     if [ "$FILE_EXT" = "sh" ] || [ "$FILE_EXT" = "py" ]; then
         VALID_COUNT=$((VALID_COUNT + 1))
-        pid=$(run_file "$file")
-        if [ "$pid" != "0" ]; then
-            PIDS+=("$pid")
-        fi
+        # Run file in background and don't attempt to track PID
+        run_file "$file" &
     else
         echo "❌ File $(basename "$file") is not a shell script or python file"
     fi
@@ -101,12 +124,8 @@ done <<< "$SELECTED_FILES"
 
 echo "🚀 Started running $VALID_COUNT/$FILE_COUNT files in parallel..."
 
-# Wait for all processes to finish
-for pid in "${PIDS[@]}"; do
-    if [ "$pid" != "0" ]; then
-        wait "$pid"
-    fi
-done
+# Use wait without PID to wait for all background processes
+wait
 
 # Display results for each file
 echo ""
