@@ -1,11 +1,11 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title 切换 Yabai 服务
+# @raycast.title Yabai Toggle
 # @raycast.mode silent
 # @raycast.icon 🪟
-# @raycast.packageName Yabai
-# @raycast.description 开启或关闭 Yabai 窗口管理服务
+# @raycast.packageName Custom
+# @raycast.description Toggle Yabai window management service
 
 # 执行 toggle-yabai.sh 脚本
 /Users/tianli/useful_scripts/execute/yabai/toggle-yabai.sh
