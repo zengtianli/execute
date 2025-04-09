@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title yabai organize windows
+# @raycast.title yabai Org
 # @raycast.mode fullOutput
 # @raycast.icon 🪟
 # @raycast.packageName Custom

@@ -8,6 +8,8 @@
 # @raycast.description Run multiple selected shell or python scripts in parallel
 # Path to Python executable
 PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
+# Path to miniforge3 bin directory (for commands like markitdown)
+MINIFORGE_BIN="/Users/tianli/miniforge3/bin"
 # Get all selected files in Finder
 SELECTED_FILES=$(osascript -e '
 tell application "Finder"
@@ -74,7 +76,8 @@ except ImportError:
                 # Run the Python script
                 "$PYTHON_PATH" "$file" >> "$log_file" 2>&1
             else
-                "$file" > "$log_file" 2>&1
+                # Add miniforge bin to PATH before executing shell script
+                PATH="$MINIFORGE_BIN:$PATH" "$file" > "$log_file" 2>&1
             fi
             # Store exit code
             echo $? > "$success_log"
