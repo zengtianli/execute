@@ -8,7 +8,7 @@
 # @raycast.description Open default terminal in current Finder directory
 
 # 设置默认终端应用
-TERMINAL_APP="Warp"
+TERMINAL_APP="Ghostty"
 
 # Get selected directory in Finder
 CURRENT_DIR=$(osascript -e '

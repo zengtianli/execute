@@ -1,14 +1,14 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title d2m
+# @raycast.title pdf2md
 # @raycast.mode silent
-# @raycast.icon 📂
+# @raycast.icon 📄
 # @raycast.packageName Custom
-# @raycast.description Convert selected files to markdown using docxmark
+# @raycast.description Convert selected PDF files to markdown using marker_single
 
-# 设置环境变量，确保能找到markitdown命令
-export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin:$HOME/.local/bin"
+# 设置环境变量，确保能找到marker_single命令
+export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin:$HOME/.local/bin:/Users/tianli/miniforge3/bin"
 
 # Get selected files in Finder
 SELECTED_FILES=$(osascript <<'EOF'
@@ -47,19 +47,18 @@ for SELECTED_FILE in "${FILE_ARRAY[@]}"; do
     # Get the directory of the selected file
     FILE_DIR=$(dirname "$SELECTED_FILE")
     
-    # Check if the file is a docx file
-    if [[ "$SELECTED_FILE" != *".docx" ]]; then
-        echo "⚠️ Skipping $(basename "$SELECTED_FILE") - not a docx file"
+    # Check if the file is a PDF file
+    if [[ "$SELECTED_FILE" != *".pdf" ]]; then
+        echo "⚠️ Skipping $(basename "$SELECTED_FILE") - not a PDF file"
         continue
     fi
     
     # Change to the file's directory
     cd "$FILE_DIR"
     
-    # Run the conversion
-    output_file="${SELECTED_FILE%.docx}.md"
-    echo "Converting $SELECTED_FILE to $output_file"
-    /Users/tianli/miniforge3/bin/markitdown "$SELECTED_FILE" > "$output_file"
+    # Run the conversion using marker_single with the correct parameters
+    echo "Converting $(basename "$SELECTED_FILE") to markdown"
+    /Users/tianli/miniforge3/bin/marker_single "$SELECTED_FILE" --output_dir "$FILE_DIR"
     
     # Increment success counter
     ((SUCCESS_COUNT++))
@@ -67,8 +66,7 @@ done
 
 # Show success notification
 if [ $SUCCESS_COUNT -eq 1 ]; then
-    echo "✅ Converted $SUCCESS_COUNT file to markdown"
+    echo "✅ Converted $SUCCESS_COUNT PDF file to markdown"
 else
-    echo "✅ Converted $SUCCESS_COUNT files to markdown"
+    echo "✅ Converted $SUCCESS_COUNT PDF files to markdown"
 fi
-
