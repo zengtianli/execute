@@ -72,7 +72,7 @@ check_file_extension() {
     local expected_ext="$2"
     local actual_ext="${file##*.}"
     
-    [[ "${actual_ext,,}" == "${expected_ext,,}" ]]
+    [[ "$(echo "$actual_ext" | tr '[:upper:]' '[:lower:]')" == "$(echo "$expected_ext" | tr '[:upper:]' '[:lower:]')" ]]
 }
 
 # 在 Ghostty 中执行命令

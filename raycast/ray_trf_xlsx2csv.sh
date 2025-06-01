@@ -1,35 +1,41 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title xlsx2csv0
+# @raycast.title xlsx2csv
 # @raycast.mode silent
 # @raycast.icon 📋
 # @raycast.packageName Custom
-# @raycast.description Convert xlsx files to csv in current Finder directory
+# @raycast.description 将选中的Excel文件中的所有工作表转换为CSV格式
 
-# Get selected file in Finder
-SELECTED_FILE=$(osascript <<'EOF'
-tell application "Finder"
-    if (count of (selection as list)) > 0 then
-        POSIX path of (item 1 of (selection as list) as alias)
-    end if
-end tell
-EOF
-)
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
+# 获取选中的文件
+SELECTED_FILE=$(get_finder_selection_single)
 if [ -z "$SELECTED_FILE" ]; then
-    echo "❌ 在Finder中未选择文件"
+    show_error "没有在 Finder 中选择任何文件"
     exit 1
 fi
 
-# Get the directory of the selected file
+# 检查文件类型
+if ! check_file_extension "$SELECTED_FILE" "xlsx"; then
+    show_error "选中的不是 XLSX 文件"
+    exit 1
+fi
+
+# 获取文件目录
 FILE_DIR=$(dirname "$SELECTED_FILE")
 
-# Change to the file's directory
-cd "$FILE_DIR"
+# 切换到文件目录
+safe_cd "$FILE_DIR" || exit 1
 
-# Run the Python script
-/Users/tianli/miniforge3/bin/python3 /Users/tianli/useful_scripts/execute/xlsx2csv.py "$SELECTED_FILE"
+# 显示处理信息
+show_processing "正在将 $(basename "$SELECTED_FILE") 的所有工作表转换为 CSV 格式..."
 
-# Show notification
-echo "✅ 已将 $(basename \"$SELECTED_FILE\") 转换为 csv 格式，保存在 $(basename \"$FILE_DIR\")"
+# 执行Python脚本，添加-a参数转换所有工作表
+if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/xlsx2csv.py" -a "$SELECTED_FILE"; then
+    show_success "已将 $(basename "$SELECTED_FILE") 的所有工作表转换为 CSV 格式，保存在 $(basename "$FILE_DIR")"
+else
+    show_error "转换失败"
+    exit 1
+fi
