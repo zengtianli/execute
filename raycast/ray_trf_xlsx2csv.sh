@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title xlsx2csv
+# @raycast.title xlsx2csv0
 # @raycast.mode silent
 # @raycast.icon 📋
 # @raycast.packageName Custom

@@ -1,11 +1,11 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title txt2csv
+# @raycast.title xlsx2csv
 # @raycast.mode silent
-# @raycast.icon 📝
+# @raycast.icon 📋
 # @raycast.packageName Custom
-# @raycast.description Convert txt files to csv in current Finder directory
+# @raycast.description 将选中的Excel文件中的所有工作表转换为CSV格式
 
 # 引入通用函数库
 source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
@@ -18,8 +18,8 @@ if [ -z "$SELECTED_FILE" ]; then
 fi
 
 # 检查文件类型
-if ! check_file_extension "$SELECTED_FILE" "txt"; then
-    show_error "选中的不是 TXT 文件"
+if ! check_file_extension "$SELECTED_FILE" "xlsx"; then
+    show_error "选中的不是 XLSX 文件"
     exit 1
 fi
 
@@ -30,11 +30,11 @@ FILE_DIR=$(dirname "$SELECTED_FILE")
 safe_cd "$FILE_DIR" || exit 1
 
 # 显示处理信息
-show_processing "正在将 $(basename "$SELECTED_FILE") 转换为 CSV 格式..."
+show_processing "正在将 $(basename "$SELECTED_FILE") 的所有工作表转换为 CSV 格式..."
 
-# 执行Python脚本
-if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/txt2csv.py" "$SELECTED_FILE"; then
-    show_success "已将 $(basename "$SELECTED_FILE") 转换为 CSV 格式，保存在 $(basename "$FILE_DIR")"
+# 执行Python脚本，添加-a参数转换所有工作表
+if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/xlsx2csv.py" -a "$SELECTED_FILE"; then
+    show_success "已将 $(basename "$SELECTED_FILE") 的所有工作表转换为 CSV 格式，保存在 $(basename "$FILE_DIR")"
 else
     show_error "转换失败"
     exit 1

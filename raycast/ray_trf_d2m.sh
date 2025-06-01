@@ -7,42 +7,20 @@
 # @raycast.packageName Custom
 # @raycast.description 将选中的Docx文件或文件夹转换为Markdown
 
-# 设置环境变量，确保能找到markitdown命令
-export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin:$HOME/.local/bin"
-
-# 获取脚本的绝对路径
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
 # 检查原始转换脚本是否存在
-CONVERT_SCRIPT="$SCRIPT_DIR/execute/markitdown_docx2md.sh"
+CONVERT_SCRIPT="$SCRIPTS_DIR/execute/markitdown_docx2md.sh"
 if [ ! -f "$CONVERT_SCRIPT" ]; then
-    echo "❌ 找不到原始脚本: $CONVERT_SCRIPT"
+    show_error "找不到原始脚本: $CONVERT_SCRIPT"
     exit 1
 fi
 
 # 获取Finder中选中的文件或文件夹
-SELECTED_ITEMS=$(osascript <<'EOF'
-tell application "Finder"
-    set selectedItems to selection as list
-    set posixPaths to {}
-    
-    if (count of selectedItems) > 0 then
-        repeat with i from 1 to count of selectedItems
-            set thisItem to item i of selectedItems
-            set end of posixPaths to POSIX path of (thisItem as alias)
-        end repeat
-        
-        set AppleScript's text item delimiters to ","
-        set pathsText to posixPaths as text
-        set AppleScript's text item delimiters to ""
-        return pathsText
-    end if
-end tell
-EOF
-)
-
+SELECTED_ITEMS=$(get_finder_selection_multiple)
 if [ -z "$SELECTED_ITEMS" ]; then
-    echo "❌ 没有选中文件或文件夹"
+    show_error "没有在 Finder 中选择任何文件或文件夹"
     exit 1
 fi
 
@@ -58,7 +36,7 @@ DIR_COUNT=0
 for SELECTED_ITEM in "${ITEM_ARRAY[@]}"; do
     # 检查是文件还是目录
     if [ -d "$SELECTED_ITEM" ]; then
-        echo "📂 处理文件夹: $(basename "$SELECTED_ITEM")"
+        show_processing "处理文件夹: $(basename "$SELECTED_ITEM")"
         ((DIR_COUNT++))
         
         # 调用原始脚本处理文件夹
@@ -73,41 +51,43 @@ for SELECTED_ITEM in "${ITEM_ARRAY[@]}"; do
         ((FILE_COUNT++))
         
         # 检查是否为docx文件
-        if [[ "$SELECTED_ITEM" != *".docx" ]]; then
-            echo "⚠️ 跳过: $(basename "$SELECTED_ITEM") - 不是docx文件"
+        if ! check_file_extension "$SELECTED_ITEM" "docx"; then
+            show_warning "跳过: $(basename "$SELECTED_ITEM") - 不是docx文件"
             continue
         fi
         
         # 获取文件目录
         FILE_DIR=$(dirname "$SELECTED_ITEM")
         # 切换到文件目录
-        cd "$FILE_DIR"
+        safe_cd "$FILE_DIR" || continue
         
         # 运行转换
         output_file="${SELECTED_ITEM%.docx}.md"
-        echo "🔄 正在转换: $(basename "$SELECTED_ITEM") -> $(basename "$output_file")"
-        markitdown "$SELECTED_ITEM" > "$output_file"
+        show_processing "正在转换: $(basename "$SELECTED_ITEM") -> $(basename "$output_file")"
         
-        # 检查转换是否成功
-        if [ -f "$output_file" ]; then
-            echo "✅ 转换完成: $(basename "$output_file")"
+        # 检查命令是否存在
+        check_command_exists "markitdown" || continue
+        
+        # 执行转换
+        if markitdown "$SELECTED_ITEM" > "$output_file" 2>/dev/null; then
+            show_success "转换完成: $(basename "$output_file")"
             ((SUCCESS_COUNT++))
         else
-            echo "❌ 转换失败: $(basename "$SELECTED_ITEM")"
+            show_error "转换失败: $(basename "$SELECTED_ITEM")"
         fi
     fi
 done
 
 # 显示成功通知
 if [ $FILE_COUNT -gt 0 ] && [ $DIR_COUNT -gt 0 ]; then
-    echo "✅ 成功转换了 $SUCCESS_COUNT 个文件 (来自 $FILE_COUNT 个文件和 $DIR_COUNT 个文件夹)"
+    show_success "成功转换了 $SUCCESS_COUNT 个文件 (来自 $FILE_COUNT 个文件和 $DIR_COUNT 个文件夹)"
 elif [ $DIR_COUNT -gt 0 ]; then
-    echo "✅ 成功转换了 $SUCCESS_COUNT 个文件 (来自 $DIR_COUNT 个文件夹)"
+    show_success "成功转换了 $SUCCESS_COUNT 个文件 (来自 $DIR_COUNT 个文件夹)"
 elif [ $SUCCESS_COUNT -eq 0 ]; then
-    echo "⚠️ 没有文件被转换"
+    show_warning "没有文件被转换"
 elif [ $SUCCESS_COUNT -eq 1 ]; then
-    echo "✅ 成功转换了 1 个文件"
+    show_success "成功转换了 1 个文件"
 else
-    echo "✅ 成功转换了 $SUCCESS_COUNT 个文件"
+    show_success "成功转换了 $SUCCESS_COUNT 个文件"
 fi
 

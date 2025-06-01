@@ -76,8 +76,24 @@ for FILE in "${FILE_ARRAY[@]}"; do
     # 切换到文件所在目录
     cd "$DIR"
     
-    # 调用原始脚本进行转换
-    "$ORIGINAL_SCRIPT" "$FILENAME"
+    # 创建 AppleScript 文件
+    cat > "${HOME}/.convert_excel.scpt" << 'EOF'
+on run argv
+    set inputFile to POSIX file (item 1 of argv)
+    set outputFile to POSIX file ((text 1 thru -4 of (item 1 of argv)) & "xlsx")
+    
+    tell application "Microsoft Excel"
+        open inputFile
+        save workbook as active workbook filename outputFile file format Excel XML file format
+        close active workbook saving no
+    end tell
+end run
+EOF
+    
+    # 直接实现convert_xls_to_xlsx函数的功能，而不依赖原始脚本
+    echo "正在转换: $FILE -> ${FILE%.*}.xlsx"
+    osascript "${HOME}/.convert_excel.scpt" "$FILE"
+    echo "转换完成: ${FILE%.*}.xlsx"
     
     # 获取转换后的文件名
     XLSX_FILE="${FILENAME%.*}.xlsx"

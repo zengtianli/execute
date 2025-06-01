@@ -371,7 +371,7 @@ export PATH="$MINIFORGE_BIN:$PATH:/usr/local/bin:/opt/homebrew/bin"
 
 ## 5. 执行修改的步骤
 
-1. **创建通用函数库文件** `/Users/tianli/useful_scripts/raycast/common_functions.sh`
+1. **创建通用函数库文件** `/Users/tianli/useful_scripts/execute/raycast/common_functions.sh`
 2. **逐个修改脚本**：
    - 添加 `source` 语句引入函数库
    - 替换所有 Finder 选择相关代码
