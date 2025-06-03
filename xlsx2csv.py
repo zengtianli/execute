@@ -103,9 +103,10 @@ def main():
     parser = argparse.ArgumentParser(description="将xlsx文件转换为csv格式")
     parser.add_argument("path", nargs="?", default=".", help="要处理的文件或目录路径，默认为当前目录")
     parser.add_argument("-r", "--recursive", action="store_true", help="递归处理子目录")
-    parser.add_argument("-o", "--output", help="指定输出文件名（仅对单个文件和单个工作表有效）")
-    parser.add_argument("-s", "--sheet", help="指定要转换的工作表名称（仅对单个文件有效）")
-    parser.add_argument("-a", "--all-sheets", action="store_true", help="转换所有工作表（仅对单个文件有效）")
+    parser.add_argument("-o", "--output", help="指定输出文件名（仅对指定单个工作表时有效）")
+    parser.add_argument("-s", "--sheet", help="指定要转换的单个工作表名称（默认处理所有工作表）")
+    parser.add_argument("-a", "--all-sheets", action="store_true", help="转换所有工作表（已设为默认行为，此参数保留以兼容旧版本）")
+    parser.add_argument("-d", "--default-sheet", action="store_true", help="仅转换默认工作表（不处理所有工作表）")
     
     args = parser.parse_args()
     
@@ -116,13 +117,15 @@ def main():
             print("错误：输入文件必须是xlsx格式")
             sys.exit(1)
         try:
-            if args.all_sheets:
-                # 转换所有工作表
-                if not convert_all_sheets_to_csv(args.path):
-                    sys.exit(1)
-            else:
+            # 默认行为改为处理所有工作表
+            # 只有当明确指定单个工作表(-s)或使用-d参数时才处理单个工作表
+            if args.sheet or args.default_sheet:
                 # 转换指定工作表或默认工作表
                 if convert_xlsx_to_csv(args.path, args.output, args.sheet) is None:
+                    sys.exit(1)
+            else:
+                # 转换所有工作表（默认行为）
+                if not convert_all_sheets_to_csv(args.path):
                     sys.exit(1)
         except Exception as e:
             print(f"转换过程中出错：{str(e)}")

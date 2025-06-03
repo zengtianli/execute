@@ -53,6 +53,7 @@ show_help() {
     --docx-only    仅转换 docx 到 md
     --xls-only     仅转换 xls 到 xlsx
     --xlsx-only    仅转换 xlsx 到 csv
+    --xlsx-single-sheet 对xlsx文件只转换默认工作表，而不转换所有工作表
     
 示例:
     $0 -a          # 转换当前目录下所有支持的文件
@@ -175,8 +176,9 @@ convert_doc_files() {
         if [ "$RECURSIVE" = true ]; then
             find . -name "*.docx" -type f | while read -r file; do
                 print_info "  处理: $file"
+                # 调用脚本并指定输出目录
+                "$DOCX2MD_SCRIPT" "$file" "$MD_OUTPUT_DIR"
                 output_file="$MD_OUTPUT_DIR/$(basename "${file%.*}").md"
-                "$DOCX2MD_SCRIPT" "$file" > "$output_file"
                 print_success "  已生成: $output_file"
                 # 增加转换计数
                 ((CONVERT_COUNT_DOCX_TO_MD++))
@@ -185,8 +187,9 @@ convert_doc_files() {
             for file in *.docx; do
                 if [ -f "$file" ]; then
                     print_info "  处理: $file"
+                    # 调用脚本并指定输出目录
+                    "$DOCX2MD_SCRIPT" "$file" "$MD_OUTPUT_DIR"
                     output_file="$MD_OUTPUT_DIR/$(basename "${file%.*}").md"
-                    "$DOCX2MD_SCRIPT" "$file" > "$output_file"
                     print_success "  已生成: $output_file"
                     # 增加转换计数
                     ((CONVERT_COUNT_DOCX_TO_MD++))
@@ -226,20 +229,32 @@ convert_excel_files() {
             find . -name "*.xlsx" -type f | while read -r file; do
                 print_info "  处理: $file"
                 base_name=$(basename "${file%.*}")
-                # 尝试直接使用-o输出到指定路径
-                if python3 "$XLSX2CSV_SCRIPT" -o "$CSV_OUTPUT_DIR/$base_name.csv" "$file"; then
-                    print_success "  转换完成：$file [默认工作表] -> $CSV_OUTPUT_DIR/$base_name.csv"
-                    # 增加转换计数
-                    ((CONVERT_COUNT_XLSX_TO_CSV++))
+                
+                # 使用-d参数只处理默认工作表，输出到指定路径
+                if [ -n "$XLSX_CSV_SINGLE_SHEET" ] && [ "$XLSX_CSV_SINGLE_SHEET" = true ]; then
+                    if python3 "$XLSX2CSV_SCRIPT" -d -o "$CSV_OUTPUT_DIR/$base_name.csv" "$file"; then
+                        print_success "  转换完成：$file [默认工作表] -> $CSV_OUTPUT_DIR/$base_name.csv"
+                        # 增加转换计数
+                        ((CONVERT_COUNT_XLSX_TO_CSV++))
+                    else
+                        print_warning "  转换失败: $file [默认工作表]"
+                    fi
                 else
-                    # 如果失败，尝试使用-a参数转换所有工作表
-                    python3 "$XLSX2CSV_SCRIPT" -a "$file"
+                    # 默认处理所有工作表
+                    # 先删除可能存在的同名CSV文件
+                    rm -f "${file%.*}"_*.csv 2>/dev/null
                     
-                    # 计数所有生成的csv文件
+                    # 转换所有工作表（现在已是默认行为）
+                    python3 "$XLSX2CSV_SCRIPT" "$file"
+                    
+                    # 移动所有生成的CSV文件
                     found_csv=false
                     for csv_file in "${file%.*}"_*.csv; do
                         if [ -f "$csv_file" ]; then
                             found_csv=true
+                            # 确保目标目录存在
+                            mkdir -p "$CSV_OUTPUT_DIR"
+                            # 移动文件
                             mv "$csv_file" "$CSV_OUTPUT_DIR/"
                             print_success "  已移动: $(basename "$csv_file") 到 $CSV_OUTPUT_DIR/"
                             # 增加转换计数
@@ -258,20 +273,32 @@ convert_excel_files() {
                 if [ -f "$file" ]; then
                     print_info "  处理: $file"
                     base_name=$(basename "${file%.*}")
-                    # 尝试直接使用-o输出到指定路径
-                    if python3 "$XLSX2CSV_SCRIPT" -o "$CSV_OUTPUT_DIR/$base_name.csv" "$file"; then
-                        print_success "  转换完成：$file [默认工作表] -> $CSV_OUTPUT_DIR/$base_name.csv"
-                        # 增加转换计数
-                        ((CONVERT_COUNT_XLSX_TO_CSV++))
+                    
+                    # 使用-d参数只处理默认工作表，输出到指定路径
+                    if [ -n "$XLSX_CSV_SINGLE_SHEET" ] && [ "$XLSX_CSV_SINGLE_SHEET" = true ]; then
+                        if python3 "$XLSX2CSV_SCRIPT" -d -o "$CSV_OUTPUT_DIR/$base_name.csv" "$file"; then
+                            print_success "  转换完成：$file [默认工作表] -> $CSV_OUTPUT_DIR/$base_name.csv"
+                            # 增加转换计数
+                            ((CONVERT_COUNT_XLSX_TO_CSV++))
+                        else
+                            print_warning "  转换失败: $file [默认工作表]"
+                        fi
                     else
-                        # 如果失败，尝试使用-a参数转换所有工作表
-                        python3 "$XLSX2CSV_SCRIPT" -a "$file"
+                        # 默认处理所有工作表
+                        # 先删除可能存在的同名CSV文件
+                        rm -f "${file%.*}"_*.csv 2>/dev/null
                         
-                        # 计数所有生成的csv文件
+                        # 转换所有工作表（现在已是默认行为）
+                        python3 "$XLSX2CSV_SCRIPT" "$file"
+                        
+                        # 移动所有生成的CSV文件
                         found_csv=false
                         for csv_file in "${file%.*}"_*.csv; do
                             if [ -f "$csv_file" ]; then
                                 found_csv=true
+                                # 确保目标目录存在
+                                mkdir -p "$CSV_OUTPUT_DIR"
+                                # 移动文件
                                 mv "$csv_file" "$CSV_OUTPUT_DIR/"
                                 print_success "  已移动: $(basename "$csv_file") 到 $CSV_OUTPUT_DIR/"
                                 # 增加转换计数
@@ -431,6 +458,7 @@ main() {
     DOCX_ONLY=false
     XLS_ONLY=false
     XLSX_ONLY=false
+    XLSX_CSV_SINGLE_SHEET=false
     
     # 解析命令行参数
     while [[ $# -gt 0 ]]; do
@@ -477,6 +505,10 @@ main() {
             --xlsx-only)
                 XLSX_ONLY=true
                 CONVERT_EXCEL=true
+                shift
+                ;;
+            --xlsx-single-sheet)
+                XLSX_CSV_SINGLE_SHEET=true
                 shift
                 ;;
             -h|--help)
