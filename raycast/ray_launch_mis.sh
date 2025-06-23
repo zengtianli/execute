@@ -7,13 +7,16 @@
 # @raycast.packageName Custom
 # @raycast.description 根据桌面上的essential_apps.txt列表启动必要的应用程序
 
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
+
 # 调用launch_mis.sh脚本
-SCRIPT_PATH="$HOME/useful_scripts/execute/launch_mis.sh"
+SCRIPT_PATH="$SCRIPTS_DIR/execute/launch_mis.sh"
 
 # 检查脚本是否存在
 if [ ! -f "$SCRIPT_PATH" ]; then
-  osascript -e 'display notification "脚本文件不存在: '"$SCRIPT_PATH"'" with title "错误" sound name "Basso"'
-  exit 1
+    show_error "脚本文件不存在: $SCRIPT_PATH"
+    exit 1
 fi
 
 # 执行脚本
@@ -22,19 +25,19 @@ EXIT_STATUS=$?
 
 # 检查执行结果
 if [ $EXIT_STATUS -eq 0 ]; then
-  # 成功执行
-  APP_COUNT=$(echo "$OUTPUT" | grep "启动:" | wc -l | tr -d ' ')
-  if [ "$APP_COUNT" -gt 0 ]; then
-    osascript -e 'display notification "已成功启动 '"$APP_COUNT"' 个应用程序" with title "完成" sound name "Glass"'
-  else
-    osascript -e 'display notification "所有必要应用程序已经在运行" with title "完成" sound name "Glass"'
-  fi
+    # 成功执行
+    APP_COUNT=$(echo "$OUTPUT" | grep "启动:" | wc -l | tr -d ' ')
+    if [ "$APP_COUNT" -gt 0 ]; then
+        show_success "已成功启动 $APP_COUNT 个应用程序"
+    else
+        show_success "所有必要应用程序已经在运行"
+    fi
 else
-  # 执行失败
-  ERROR_MSG=$(echo "$OUTPUT" | grep "错误:" | head -1)
-  if [ -z "$ERROR_MSG" ]; then
-    ERROR_MSG="未知错误"
-  fi
-  osascript -e 'display notification "'"$ERROR_MSG"'" with title "错误" sound name "Basso"'
-  exit 1
+    # 执行失败
+    ERROR_MSG=$(echo "$OUTPUT" | grep "错误:" | head -1)
+    if [ -z "$ERROR_MSG" ]; then
+        ERROR_MSG="未知错误"
+    fi
+    show_error "$ERROR_MSG"
+    exit 1
 fi

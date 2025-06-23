@@ -7,19 +7,15 @@
 # @raycast.packageName Custom
 # @raycast.description Create a new folder in the selected folder
 
-# Get selected item in Finder
-SELECTED_ITEM=$(osascript <<'EOF'
-tell application "Finder"
-    if (count of (selection as list)) > 0 then
-        POSIX path of (item 1 of (selection as list) as alias)
-    end if
-end tell
-EOF
-)
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
+
+# 获取选中的项目
+SELECTED_ITEM=$(get_finder_selection_single)
 
 # 如果没有选中任何文件/文件夹，则退出
 if [ -z "$SELECTED_ITEM" ]; then
-    echo "❌ 没有在Finder中选择任何文件或文件夹"
+    show_error "没有在Finder中选择任何文件或文件夹"
     exit 1
 fi
 
@@ -48,7 +44,7 @@ NEW_FOLDER_PATH="${TARGET_DIR}/${NEW_FOLDER_NAME}"
 
 # 检查文件夹是否已存在
 if [ -e "$NEW_FOLDER_PATH" ]; then
-    echo "❌ 文件夹 \"$NEW_FOLDER_NAME\" 已存在"
+    show_error "文件夹 \"$NEW_FOLDER_NAME\" 已存在"
     exit 1
 fi
 
@@ -64,4 +60,4 @@ end tell
 EOF
 
 # 显示成功通知
-echo "✅ 已在 \"$(basename "$TARGET_DIR")\" 中创建文件夹 \"$NEW_FOLDER_NAME\""
+show_success "已在 \"$(basename "$TARGET_DIR")\" 中创建文件夹 \"$NEW_FOLDER_NAME\""

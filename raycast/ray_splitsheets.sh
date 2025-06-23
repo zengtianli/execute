@@ -7,34 +7,35 @@
 # @raycast.packageName Custom
 # @raycast.description Split the selected Excel file into separate sheets
 
-# Get selected file in Finder
-SELECTED_FILE=$(osascript <<'EOF'
-tell application "Finder"
-    if (count of (selection as list)) = 1 then
-        set selectedItem to item 1 of (selection as list)
-        POSIX path of (selectedItem as alias)
-    else
-        return ""
-    end if
-end tell
-EOF
-)
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
-# Check if exactly one file is selected
+# 获取选中的文件
+SELECTED_FILE=$(get_finder_selection_single)
+
+# 检查是否选择了一个文件
 if [ -z "$SELECTED_FILE" ]; then
-    echo "❌ Please select one Excel file in Finder"
+    show_error "请在Finder中选择一个Excel文件"
     exit 1
 fi
 
-# Get the directory of the selected file
+# 检查是否为Excel文件
+if ! (check_file_extension "$SELECTED_FILE" "xlsx" || check_file_extension "$SELECTED_FILE" "xls"); then
+    show_error "选中的不是Excel文件"
+    exit 1
+fi
+
+# 获取文件目录
 FILE_DIR=$(dirname "$SELECTED_FILE")
 
-# Change to the file's directory
-cd "$FILE_DIR"
+# 切换到文件目录
+safe_cd "$FILE_DIR" || exit 1
 
-# Run the splitsheets.py script with absolute path
-/Users/tianli/miniforge3/bin/python3 /Users/tianli/useful_scripts/execute/splitsheets.py "$SELECTED_FILE"
-
-# Notify via Raycast echo
-echo "✅ Excel sheets split for '$(basename "$SELECTED_FILE")'"
+# 运行splitsheets.py脚本
+if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/splitsheets.py" "$SELECTED_FILE"; then
+    show_success "Excel工作表拆分完成: $(basename "$SELECTED_FILE")"
+else
+    show_error "Excel工作表拆分失败"
+    exit 1
+fi
 

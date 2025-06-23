@@ -6,49 +6,49 @@
 # @raycast.icon 🚀
 # @raycast.packageName Custom
 # @raycast.description Run multiple selected shell or python scripts in parallel
+
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
+
 # Path to Python executable
 PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
 # Path to miniforge3 bin directory (for commands like markitdown)
 MINIFORGE_BIN="/Users/tianli/miniforge3/bin"
-# Get all selected files in Finder
-SELECTED_FILES=$(osascript -e '
-tell application "Finder"
-    set selectedItems to selection as list
-    set fileList to ""
-    repeat with theItem in selectedItems
-        set fileList to fileList & POSIX path of (theItem as alias) & "\n"
-    end repeat
-    return fileList
-end tell
-')
-# Check if any files are selected
+
+# 获取所有选中的文件
+SELECTED_FILES=$(get_finder_selection_multiple)
 if [ -z "$SELECTED_FILES" ]; then
-    echo "❌ No files selected in Finder"
+    show_error "没有在Finder中选择文件"
     exit 1
 fi
-# Create a temporary directory for log files
+
+# 创建临时目录存储日志文件
 TEMP_DIR=$(mktemp -d)
 FILE_COUNT=0
 VALID_COUNT=0
-# Function to run a single file and capture its output
+
+# 运行单个文件的函数
 run_file() {
     local file="$1"
     local file_ext="${file##*.}"
     local log_file="$TEMP_DIR/$(basename "$file").log"
     local success_log="$TEMP_DIR/$(basename "$file").success"
-    # Check if it's a shell script or python file
+    
+    # 检查是否为shell脚本或python文件
     if [ "$file_ext" = "sh" ] || [ "$file_ext" = "py" ]; then
         # For shell scripts, make sure they are executable
         if [ "$file_ext" = "sh" ] && [ ! -x "$file" ]; then
             chmod +x "$file"
         fi
-        # Get the directory of the script
+        
+        # 获取脚本目录
         local script_dir=$(dirname "$file")
-        # Run the file in its directory and capture output
+        
+        # 在脚本目录中运行并捕获输出
         (
             cd "$script_dir"
             if [ "$file_ext" = "py" ]; then
-                # Find PyQt6 plugins directory
+                # 为PyQt6设置环境变量
                 local PYQT_PATH=$("$PYTHON_PATH" -c "
 import sys
 try:
@@ -58,82 +58,75 @@ except ImportError:
     print('')
 ")
                 if [ -n "$PYQT_PATH" ]; then
-                    # For PyQt6
                     local QT_PATH="$PYQT_PATH/Qt6"
-                    # Set Qt plugin paths
                     export QT_PLUGIN_PATH="$QT_PATH/plugins"
                     export QT_QPA_PLATFORM_PLUGIN_PATH="$QT_PATH/plugins/platforms"
-                    # Log paths for debugging
                     echo "Using PyQt6 path: $PYQT_PATH" >> "$log_file"
-                    echo "Qt plugins path: $QT_PLUGIN_PATH" >> "$log_file"
-                    echo "Qt platform plugins path: $QT_QPA_PLATFORM_PLUGIN_PATH" >> "$log_file"
-                    # Ensure macOS library paths are correct
                     export DYLD_LIBRARY_PATH="$QT_PATH/lib:$DYLD_LIBRARY_PATH"
                     export DYLD_FRAMEWORK_PATH="$QT_PATH/lib:$DYLD_FRAMEWORK_PATH"
                 fi
-                # Set debugging for Qt
                 export QT_DEBUG_PLUGINS=1
-                # Run the Python script
                 "$PYTHON_PATH" "$file" >> "$log_file" 2>&1
             else
-                # Add miniforge bin to PATH before executing shell script
                 PATH="$MINIFORGE_BIN:$PATH" "$file" > "$log_file" 2>&1
             fi
-            # Store exit code
             echo $? > "$success_log"
         )
     else
-        echo "❌ File $(basename "$file") is not a shell script or python file" > "$log_file"
+        echo "❌ 文件 $(basename "$file") 不是shell脚本或python文件" > "$log_file"
         echo "1" > "$success_log"
     fi
 }
-# Process each selected file
-while IFS= read -r file; do
-    # Skip empty lines
-    if [ -z "$file" ]; then
-        continue
-    fi
+
+# 分割逗号分隔的文件列表
+IFS=',' read -ra FILE_ARRAY <<< "$SELECTED_FILES"
+
+# 处理每个选中的文件
+for file in "${FILE_ARRAY[@]}"; do
     FILE_COUNT=$((FILE_COUNT + 1))
-    # Get file extension
     FILE_EXT="${file##*.}"
-    # Check if it's a valid file type
+    
+    # 检查是否为有效文件类型
     if [ "$FILE_EXT" = "sh" ] || [ "$FILE_EXT" = "py" ]; then
         VALID_COUNT=$((VALID_COUNT + 1))
-        # Run file in background and don't attempt to track PID
+        # 在后台运行文件
         run_file "$file" &
     else
-        echo "❌ File $(basename "$file") is not a shell script or python file"
+        show_warning "文件 $(basename "$file") 不是shell脚本或python文件"
     fi
-done <<< "$SELECTED_FILES"
-echo "🚀 Started running $VALID_COUNT/$FILE_COUNT files in parallel..."
-# Use wait without PID to wait for all background processes
+done
+
+show_processing "开始并行运行 $VALID_COUNT/$FILE_COUNT 个文件..."
+
+# 等待所有后台进程完成
 wait
-# Display results for each file
+
+# 显示每个文件的结果
 echo ""
-echo "📊 Results:"
+echo "📊 运行结果:"
 echo "========================================"
-while IFS= read -r file; do
-    # Skip empty lines
-    if [ -z "$file" ]; then
-        continue
-    fi
+
+for file in "${FILE_ARRAY[@]}"; do
     base_name=$(basename "$file")
     log_file="$TEMP_DIR/$base_name.log"
     success_log="$TEMP_DIR/$base_name.success"
+    
     if [ -f "$success_log" ]; then
         exit_code=$(cat "$success_log")
         if [ "$exit_code" = "0" ]; then
-            echo "✅ Successfully ran $base_name"
+            echo "✅ 成功运行 $base_name"
         else
-            echo "❌ Error running $base_name"
+            echo "❌ 运行出错 $base_name"
         fi
-        echo "Output:"
+        echo "输出:"
         cat "$log_file"
         echo "========================================"
     fi
-done <<< "$SELECTED_FILES"
-# Clean up temporary directory
+done
+
+# 清理临时目录
 rm -rf "$TEMP_DIR"
-# Summary
+
+# 总结
 echo ""
-echo "💡 完成运行 $VALID_COUNT 个文件"
+show_success "完成运行 $VALID_COUNT 个文件"

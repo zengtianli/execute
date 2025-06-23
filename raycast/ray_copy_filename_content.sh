@@ -7,24 +7,13 @@
 # @raycast.packageName Custom
 # @raycast.description Copy selected file's filename and content to clipboard
 
-# 获取Finder中选中的所有文件
-SELECTED_FILES=$(osascript <<'EOF'
-set fileList to ""
-tell application "Finder"
-    set selectedItems to selection as list
-    if (count of selectedItems) > 0 then
-        repeat with i from 1 to count of selectedItems
-            set currentFile to POSIX path of (item i of selectedItems as alias)
-            set fileList to fileList & currentFile & "\n"
-        end repeat
-    end if
-end tell
-return fileList
-EOF
-)
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
+# 获取选中的文件
+SELECTED_FILES=$(get_finder_selection_multiple)
 if [ -z "$SELECTED_FILES" ]; then
-    echo "❌ 在Finder中未选择文件"
+    show_error "在Finder中未选择文件"
     exit 1
 fi
 
@@ -34,19 +23,17 @@ TEMP_FILE=$(mktemp)
 # 计数器
 FILE_COUNT=0
 
-# 处理每个选中的文件 - 使用循环而非管道，避免子shell问题
-while read -r FILE_PATH; do
-    # 跳过空行
-    if [ -z "$FILE_PATH" ]; then
-        continue
-    fi
+# 分割逗号分隔的文件列表
+IFS=',' read -ra FILE_ARRAY <<< "$SELECTED_FILES"
 
+# 处理每个选中的文件
+for FILE_PATH in "${FILE_ARRAY[@]}"; do
     # 获取文件名（不含路径）
     FILENAME=$(basename "$FILE_PATH")
     
     # 检查文件是否可读
     if [ ! -r "$FILE_PATH" ]; then
-        echo "❌ 无法读取文件：$FILENAME"
+        show_warning "无法读取文件：$FILENAME"
         continue
     fi
     
@@ -56,7 +43,7 @@ while read -r FILE_PATH; do
     echo -e "\n-----------------------------------\n" >> "$TEMP_FILE"
     
     FILE_COUNT=$((FILE_COUNT+1))
-done <<< "$(echo -e "$SELECTED_FILES")"
+done
 
 # 将临时文件内容复制到粘贴板
 cat "$TEMP_FILE" | pbcopy
@@ -66,7 +53,7 @@ rm -f "$TEMP_FILE"
 
 # 显示通知
 if [ $FILE_COUNT -eq 1 ]; then
-    echo "✅ 已复制 1 个文件的名称和内容到粘贴板"
+    show_success "已复制 1 个文件的名称和内容到粘贴板"
 else
-    echo "✅ 已复制 $FILE_COUNT 个文件的名称和内容到粘贴板"
+    show_success "已复制 $FILE_COUNT 个文件的名称和内容到粘贴板"
 fi

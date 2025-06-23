@@ -7,31 +7,13 @@
 # @raycast.packageName Custom
 # @raycast.description 将选中文件夹内容(包括子文件夹)移到上一级并删除空文件夹
 
-# 获取Finder中选中的文件夹
-SELECTED_FOLDERS=$(osascript <<'EOF'
-tell application "Finder"
-    set selectedItems to selection as list
-    set posixPaths to {}
-    
-    if (count of selectedItems) > 0 then
-        repeat with i from 1 to count of selectedItems
-            set thisItem to item i of selectedItems
-            if kind of thisItem is "文件夹" or kind of thisItem is "Folder" then
-                set end of posixPaths to POSIX path of (thisItem as alias)
-            end if
-        end repeat
-        
-        set AppleScript's text item delimiters to ","
-        set pathsText to posixPaths as text
-        set AppleScript's text item delimiters to ""
-        return pathsText
-    end if
-end tell
-EOF
-)
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
+# 获取Finder中选中的文件夹
+SELECTED_FOLDERS=$(get_finder_selection_multiple)
 if [ -z "$SELECTED_FOLDERS" ]; then
-    echo "❌ 没有选中文件夹"
+    show_error "没有选中文件夹"
     exit 1
 fi
 
@@ -128,7 +110,7 @@ for FOLDER in "${FOLDER_ARRAY[@]}"; do
     
     # 检查是否为文件夹
     if [ ! -d "$FOLDER" ]; then
-        echo "⚠️ 跳过 $(basename "$FOLDER") - 不是文件夹"
+        show_warning "跳过 $(basename "$FOLDER") - 不是文件夹"
         ((SKIPPED_COUNT++))
         continue
     fi
@@ -156,11 +138,11 @@ done
 
 # 显示成功通知
 if [ $SUCCESS_COUNT -eq 1 ]; then
-    echo "✅ 成功处理了 $SUCCESS_COUNT 个文件夹"
+    show_success "成功处理了 $SUCCESS_COUNT 个文件夹"
 else
-    echo "✅ 成功处理了 $SUCCESS_COUNT 个文件夹"
+    show_success "成功处理了 $SUCCESS_COUNT 个文件夹"
 fi
 
 if [ $SKIPPED_COUNT -gt 0 ]; then
-    echo "⚠️ 跳过了 $SKIPPED_COUNT 个项目"
+    show_warning "跳过了 $SKIPPED_COUNT 个项目"
 fi

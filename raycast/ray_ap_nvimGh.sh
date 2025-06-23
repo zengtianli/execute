@@ -6,43 +6,23 @@
 # @raycast.icon 👻
 # @raycast.packageName Custom
 # @raycast.description Open selected file in Nvim in a new Ghostty window
-# Get selected file in Finder
-SELECTED_FILE=$(osascript <<'EOF'
-tell application "Finder"
-    if (count of (selection as list)) > 0 then
-        POSIX path of (item 1 of (selection as list) as alias)
-    end if
-end tell
-EOF
-)
+
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
+
+# 获取选中的文件
+SELECTED_FILE=$(get_finder_selection_single)
 if [ -z "$SELECTED_FILE" ]; then
-    echo "No file selected in Finder"
+    show_error "没有在Finder中选择文件"
     exit 1
 fi
+
+# 获取文件目录
 FILE_DIR=$(dirname "$SELECTED_FILE")
-osascript <<'EOF'
-tell application "Ghostty"
-    activate
-    tell application "System Events"
-        keystroke "n" using command down
-    end tell
-end tell
-EOF
-# 等待 1 秒钟让窗口打开
-sleep 1
+
+# 在Ghostty中执行cd和nvim命令
 COMMAND="cd \"${FILE_DIR}\" && nvim \"${SELECTED_FILE}\""
-COMMAND_ESCAPED=$(printf "%s" "$COMMAND" | sed 's/"/\\"/g')
-osascript <<EOF
-tell application "Ghostty"
-    activate
-    delay 0.2
-    set the clipboard to "$COMMAND_ESCAPED"
-    tell application "System Events"
-       keystroke "v" using command down
-       delay 0.1
-       key code 36
-    end tell
-end tell
-EOF
+run_in_ghostty "$COMMAND"
+
 # 显示通知
-echo "✅ Opened $(basename "$SELECTED_FILE") in Nvim"
+show_success "Opened $(basename "$SELECTED_FILE") in Nvim"

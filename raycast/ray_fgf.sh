@@ -8,9 +8,12 @@
 # @raycast.packageName Navigation
 # @raycast.description Use FZF to find and open directories in Finder
 
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
+
 # Check if fzf is installed
-if ! command -v fzf &> /dev/null; then
-    echo "❌ FZF is not installed. Please install it with 'brew install fzf'"
+if ! check_command_exists "fzf"; then
+    show_error "FZF未安装，请先安装：brew install fzf"
     exit 1
 fi
 
@@ -31,8 +34,8 @@ rm "$TEMP_FILE"
 if [[ -n "$SELECTED_DIR" ]]; then
     # Open the directory in Finder
     open -a Finder "$SELECTED_DIR"
-    echo "✅ Opened in Finder: $SELECTED_DIR"
+    show_success "已在Finder中打开: $SELECTED_DIR"
 else
-    echo "❌ No directory selected"
+    show_warning "没有选择目录"
 fi
 

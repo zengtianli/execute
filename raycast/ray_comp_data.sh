@@ -7,42 +7,31 @@
 # @raycast.packageName Custom
 # @raycast.description Compare two selected Excel files using compare_data.py script.
 
-# Get selected files in Finder
-SELECTED_FILES=$(osascript <<'EOF'
-tell application "Finder"
-    set selectedItems to selection as list
-    if (count of selectedItems) = 2 then
-        set fileList to ""
-        repeat with i from 1 to count of selectedItems
-            set currentItem to item i of selectedItems
-            set currentPath to POSIX path of (currentItem as alias)
-            if i > 1 then
-                set fileList to fileList & "
-"
-            end if
-            set fileList to fileList & currentPath
-        end repeat
-        return fileList
-    else
-        return ""
-    end if
-end tell
-EOF
-)
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
-# Check if exactly two files are selected
+# 获取选中的文件
+SELECTED_FILES=$(get_finder_selection_multiple)
+
+# 检查是否选择了恰好两个文件
 if [ -z "$SELECTED_FILES" ]; then
-    echo "❌ Please select exactly two Excel files in Finder"
+    show_error "请在Finder中选择恰好两个Excel文件"
     exit 1
 fi
 
-# Convert the output into an array
-IFS=$'\n' read -r -d '' -a FILES <<< "$SELECTED_FILES"
+# 将选中的文件分割为数组
+IFS=',' read -ra FILES_ARRAY <<< "$SELECTED_FILES"
 
-# Run the Python script with absolute paths
-/Users/tianli/miniforge3/bin/python3 /Users/tianli/useful_scripts/execute/compare/compare_data.py "${FILES[0]}" "${FILES[1]}"
+# 检查文件数量
+if [ ${#FILES_ARRAY[@]} -ne 2 ]; then
+    show_error "请选择恰好两个Excel文件"
+    exit 1
+fi
 
-# Notify via Raycast echo
-echo "✅ Compared data for:"
-echo "1. $(basename "${FILES[0]}")"
-echo "2. $(basename "${FILES[1]}")"
+# 运行Python脚本
+"$PYTHON_PATH" "$SCRIPTS_DIR/execute/compare/compare_data.py" "${FILES_ARRAY[0]}" "${FILES_ARRAY[1]}"
+
+# 显示成功通知
+show_success "数据比较完成："
+echo "1. $(basename "${FILES_ARRAY[0]}")"
+echo "2. $(basename "${FILES_ARRAY[1]}")"

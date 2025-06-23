@@ -12,22 +12,17 @@ PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
 
 # Set QT plugin path for PyQt applications
 
-# Get selected file in Finder
-SELECTED_FILE=$(osascript -e '
-tell application "Finder"
-    if (count of (selection as list)) > 0 then
-        POSIX path of (item 1 of (selection as list) as alias)
-    end if
-end tell
-')
+# 引入通用函数库
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
-# Check if a file is selected
+# 获取选中的文件
+SELECTED_FILE=$(get_finder_selection_single)
 if [ -z "$SELECTED_FILE" ]; then
-    echo "❌ No file selected in Finder"
+    show_error "没有在Finder中选择文件"
     exit 1
 fi
 
-# Get file extension
+# 获取文件扩展名
 FILE_EXT="${SELECTED_FILE##*.}"
 
 # Check if it's a shell script or python file
@@ -41,7 +36,7 @@ if [ "$FILE_EXT" = "sh" ] || [ "$FILE_EXT" = "py" ]; then
     SCRIPT_DIR=$(dirname "$SELECTED_FILE")
     
     # Change to the script's directory and run it
-    cd "$SCRIPT_DIR"
+    safe_cd "$SCRIPT_DIR" || exit 1
     if [ "$FILE_EXT" = "py" ]; then
         output=$("$PYTHON_PATH" "$SELECTED_FILE" 2>&1)
     else
@@ -50,16 +45,16 @@ if [ "$FILE_EXT" = "sh" ] || [ "$FILE_EXT" = "py" ]; then
     exit_code=$?
     
     if [ $exit_code -eq 0 ]; then
-        echo "✅ Successfully ran $(basename "$SELECTED_FILE")"
-        echo "Output:"
+        show_success "成功运行了 $(basename "$SELECTED_FILE")"
+        echo "输出:"
         echo "$output"
     else
-        echo "❌ Error running $(basename "$SELECTED_FILE")"
-        echo "Error output:"
+        show_error "运行失败: $(basename "$SELECTED_FILE")"
+        echo "错误输出:"
         echo "$output"
         exit 1
     fi
 else
-    echo "❌ Selected file is not a shell script or python file"
+    show_error "选中的文件不是shell脚本或python文件"
     exit 1
 fi
