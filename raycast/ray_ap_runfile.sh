@@ -7,11 +7,6 @@
 # @raycast.packageName Custom
 # @raycast.description Run selected shell or python script
 
-# Path to Python executable
-PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
-
-# Set QT plugin path for PyQt applications
-
 # 引入通用函数库
 source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 

@@ -8,7 +8,7 @@
 # @raycast.description Destroy current space in Yabai
 
 # 引入通用函数库
-source "/Users/tianli/useful_scripts/raycast/common_functions.sh"
+source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
 # 检查销毁空间脚本是否存在
 SPACE_SCRIPT="$SCRIPTS_DIR/execute/yabai/space_destroy.sh"

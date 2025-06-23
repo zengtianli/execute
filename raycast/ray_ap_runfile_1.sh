@@ -10,11 +10,6 @@
 # 引入通用函数库
 source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
-# Path to Python executable
-PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
-# Path to miniforge3 bin directory (for commands like markitdown)
-MINIFORGE_BIN="/Users/tianli/miniforge3/bin"
-
 # 获取所有选中的文件
 SELECTED_FILES=$(get_finder_selection_multiple)
 if [ -z "$SELECTED_FILES" ]; then

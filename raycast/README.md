@@ -1,90 +1,286 @@
-# Raycast 脚本使用说明
+# Raycast 脚本工具集
 
-本说明文档介绍了位于此目录下所有 Raycast 脚本的用法、功能和参数说明。所有脚本均可通过 Raycast 快捷启动，并使用 Finder 当前目录作为工作目录。
+这是一个功能齐全的Raycast脚本工具集，旨在提高macOS用户的工作效率。通过Raycast快速启动和执行各种常用操作。
 
-## 脚本列表及说明
+## 📋 目录结构
 
-1. **ray_comp_data.sh**
-   - 用途：比较数据。该脚本调用 Python 脚本 `compare_data.py` 对两个 Excel 文件进行数据比较。
-   - 参数：需要提供两个文本参数，分别作为要比较的两个文件的前缀（自动追加 `.xlsx`）。
-   - 功能：将 Finder 当前目录作为工作目录，执行数据比较，并在完成后通过 Raycast 通知用户。
+```
+raycast/
+├── common_functions.sh         # 公共函数库
+├── trf/                       # 文件格式转换工具
+├── yabai/                     # Yabai窗口管理工具
+└── [各种功能脚本]
+```
 
-2. **ray_d2m.sh**
-   - 用途：创建新文件。调用 Python 脚本 `docxmark_1.py` 生成一个新的 DOCX 文件。
-   - 参数：需要提供一个文件名（不含扩展名），脚本会自动追加 `.docx`。
-   - 功能：在 Finder 当前目录下生成指定名称的 DOCX 文件，并使用 Raycast 的通知反馈操作结果。
+## 🚀 功能概览
 
-3. **ray_comp_item.sh**
-   - 用途：比较项目。调用 Python 脚本 `compare_items.py` 对两个 Excel 文件中的项目进行比较。
-   - 参数：需要提供两个文本参数，作为要比较的两个文件的前缀（自动追加 `.xlsx`）。
-   - 功能：在 Finder 当前目录下执行操作，并完成后发送通知。
+### 📱 应用程序启动
+- **Cursor** (`ray_ap_cursor.sh`): 在当前Finder目录打开Cursor编辑器
+- **Ghostty** (`ray_ap_ghossty.sh`): 在当前Finder目录打开Ghostty终端
+- **Nvim in Ghostty** (`ray_ap_nvimGh.sh`): 在Ghostty中用Nvim打开选中文件
+- **Default Terminal** (`ray_ap_terminal.sh`): 在当前目录打开默认终端
+- **Windsurf** (`ray_ap_winsurf.sh`): 在当前目录打开Windsurf编辑器
 
-4. **ray_m2d.sh**
-   - 用途：创建 Markdown 文件。调用 Python 脚本 `main.py` （来自 `docx_styler` 工具）生成一个新的 Markdown 文件。
-   - 参数：需要提供一个文件名（不含扩展名），脚本会自动追加 `.md`。
-   - 功能：在 Finder 当前目录下生成指定名称的 Markdown 文件，并使用通知反馈。
+### 📁 文件管理
+- **Copy Filename** (`ray_copy_filename.sh`): 复制选中文件的文件名到剪贴板
+- **Copy Name and Content** (`ray_copy_filename_content.sh`): 复制文件名和内容到剪贴板
+- **Create Folder** (`ray_create_folder.sh`): 在选中位置创建新文件夹
+- **Move Up Remove** (`ray_move_up_remove.sh`): 将文件夹内容移到上级并删除空文件夹
+- **Add Folder Prefix** (`ray_add_folder_prefix.sh`): 为文件夹内文件添加文件夹名前缀
 
-5. **ray_execute_fsj_gui.sh**
-   - 用途：执行 FSJ 图形界面脚本。通过指定的 Python 路径运行位于 `gui.py` 的脚本，启动图形界面。
-   - 参数：无固定参数，直接运行。
-   - 功能：设置好必要的环境变量（如 `QT_PLUGIN_PATH`），然后启动 FSJ GUI 应用。
+### 🔧 实用工具
+- **Run File** (`ray_ap_runfile.sh`): 运行选中的shell或python脚本
+- **Run Files in Parallel** (`ray_ap_runfile_1.sh`): 并行运行多个脚本文件
+- **Compare Data** (`ray_comp_data.sh`): 比较两个Excel文件数据
+- **Split Excel Sheets** (`ray_splitsheets.sh`): 将Excel文件拆分为单独的工作表
+- **FZF Goto Folder** (`ray_fgf.sh`): 使用FZF快速跳转到文件夹
+- **Launch MIS** (`ray_launch_mis.sh`): 启动必要的应用程序
+- **Terminate All Python** (`ray_terminate_py.sh`): 终止所有Python进程
 
-6. **ray_restart_raycast.sh**
-   - 用途：重启 Raycast 应用。
-   - 参数：无参数。
-   - 功能：检查 Raycast 是否在运行，若在运行则退出后等待彻底退出，再重新启动 Raycast 应用。
+## 📖 详细功能说明
 
-7. **ray_splitsheets.sh**
-   - 用途：拆分 Excel 表格。调用 Python 脚本 `splitsheets.py` 将一个 Excel 文件拆分成多个工作表。
-   - 参数：需要提供 Excel 文件的前缀（自动追加 `.xlsx`）。
-   - 功能：在 Finder 当前目录下执行拆分操作，并通知用户操作成功。
+### 🖥️ 应用程序启动工具
 
-8. **ray_execute_mike_gui.sh**
-   - 用途：启动 MIKE 图形界面脚本。调用 Python 脚本 `mike_gui.py` 启动 MIKE GUI 应用。
-   - 参数：无固定参数。
-   - 功能：设置好必要的环境变量（例如 `QT_PLUGIN_PATH`）以及日志文件路径，然后启动 MIKE GUI 应用。
+#### **Cursor & Windsurf**
+```bash
+# 功能: 在当前Finder目录打开代码编辑器
+# 使用: 在Finder中选择目录，然后运行脚本
+# 输出: 在选中目录中启动编辑器
+```
 
-9. **ray_terminate_mike_gui.sh**
-   - 用途：终止 MIKE 图形界面脚本。
-   - 参数：无参数。
-   - 功能：使用 `pkill` 命令终止正在运行的 MIKE GUI 进程。
+#### **Ghostty Terminal**
+```bash
+# 功能: 在当前目录打开Ghostty终端
+# 使用: 在任何Finder位置运行
+# 特点: 自动切换到当前Finder目录
+```
 
-10. **ray_txt2xls.sh**
-    - 用途：将 TXT 文件转换为 XLSX 文件。调用 Python 脚本 `txt2xls.py` 实现转换。
-    - 参数：无须指定文件名，脚本将在 Finder 当前目录下转换所有 TXT 文件，并生成相应的 XLSX 文件。
-    - 功能：转换结束后发送通知。
+#### **Nvim in Ghostty**
+```bash
+# 功能: 在Ghostty中用Nvim打开选中文件
+# 使用: 选择文件后运行脚本
+# 特点: 自动在文件所在目录启动Nvim
+```
 
-11. **ray_winsurf.sh**
-    - 用途：打开 Windsurf 应用。
-    - 参数：无参数。
-    - 功能：在 Finder 当前目录下启动 Windsurf 应用，并通过通知反馈操作结果。
+### 📂 文件操作工具
 
-12. **ray_xls2txt.sh**
-    - 用途：将 XLSX 文件转换为 TXT 文件。调用 Python 脚本 `xls2txt.py` 完成转换。
-    - 参数：无须指定文件名，脚本将在 Finder 当前目录下转换所有 XLSX 文件，并生成对应的 TXT 文件。
-    - 功能：转换结束后发送通知。
+#### **文件内容复制**
+- **copy_filename**: 仅复制文件名
+- **copy_filename_content**: 复制文件名+完整内容
+- 支持多文件批量操作
+- 自动格式化输出
 
-13. **terminate_py.sh**
-    - 用途：终止所有正在运行的 Python 进程。
-    - 参数：无参数。
-    - 功能：使用 `pkill` 命令结束所有 Python 进程，可选的更严格方式已在脚本中注释。
+#### **文件夹管理**
+```bash
+# Create Folder
+# - 在选中位置创建新文件夹
+# - 自动处理重名冲突
+# - 支持在文件或文件夹上操作
 
-14. **ray_execute_mike_gui copy.bark**
-    - 用途：该文件看似是 `ray_execute_mike_gui.sh` 的一个备份或复制文件，其具体用途取决于用户后续是否需要。
-    - 参数及功能：与 `ray_execute_mike_gui.sh` 类似，但文件扩展名不同，可能用于测试或备份目的。
+# Move Up Remove
+# - 递归移动文件夹内容到上级
+# - 自动添加前缀防止冲突
+# - 删除处理后的空文件夹
 
-## 使用方法
+# Add Folder Prefix
+# - 批量为文件添加文件夹名前缀
+# - 防止重复添加前缀
+# - 支持多文件夹同时处理
+```
 
-1. 将所需的脚本通过 Raycast 快捷方式调用，确保在 Finder 中切换到正确的目录。
-2. 根据各脚本的用途，输入必要的参数，例如文件名前缀或其他文本参数。
-3. 脚本执行完成后，会通过终端或 Raycast 的通知显示操作结果。
+### ⚙️ 脚本执行工具
 
-## 注意事项
+#### **Run File (单文件)**
+```bash
+# 支持格式: .sh, .py
+# 功能:
+# - 自动添加执行权限
+# - 在脚本目录中运行
+# - 显示详细输出和错误信息
+# - 成功/失败状态反馈
+```
 
-- 本目录中的脚本均依赖于 Python 脚本位于特定路径下，如果路径或依赖环境发生变化，请根据实际情况修改脚本内的对应路径。
-- 执行前请确保相关 Python 环境已正确配置，例如 `miniforge3` 目录下的 Python 解释器和必要的插件路径。
-- 部分脚本可能会修改当前 Finder 目录下的文件，请谨慎使用并确保数据备份。
+#### **Run Files in Parallel (多文件)**
+```bash
+# 支持格式: .sh, .py
+# 功能:
+# - 并行执行多个脚本
+# - 独立的日志记录
+# - PyQt6环境自动配置
+# - 详细的执行结果报告
+```
 
----
+### 📊 数据处理工具
 
-以上就是各个 Raycast 脚本的详细说明。如有任何疑问或需进一步调整，请联系相关人员进行修改。
+#### **Excel数据比较**
+```bash
+# 功能: 比较两个Excel文件的差异
+# 使用: 选择恰好两个Excel文件
+# 输出: 详细的差异分析报告
+```
+
+#### **Excel工作表拆分**
+```bash
+# 功能: 将Excel文件拆分为单独的工作表文件
+# 支持: .xlsx, .xls格式
+# 输出: 每个工作表保存为独立文件
+```
+
+### 🔍 导航工具
+
+#### **FZF文件夹跳转**
+```bash
+# 功能: 使用FZF快速查找并跳转到文件夹
+# 特点:
+# - 模糊搜索
+# - 实时预览
+# - 排除隐藏文件夹和系统目录
+# - 直接在Finder中打开选中目录
+```
+
+## 🛠️ 安装和配置
+
+### 系统要求
+- **macOS**: 10.14+
+- **Raycast**: 最新版本
+- **依赖工具**:
+  - Python 3 (通过miniforge3)
+  - FZF (用于文件夹跳转)
+  - Ghostty 终端
+  - 相关代码编辑器
+
+### 安装步骤
+
+1. **安装依赖**
+```bash
+# 安装Homebrew (如果尚未安装)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 安装FZF
+brew install fzf
+
+# 安装miniforge3 (Python环境)
+brew install miniforge
+```
+
+2. **配置路径**
+确保 `common_functions.sh` 中的路径正确：
+```bash
+readonly PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
+readonly MINIFORGE_BIN="/Users/tianli/miniforge3/bin"
+readonly SCRIPTS_DIR="/Users/tianli/useful_scripts"
+```
+
+3. **设置权限**
+```bash
+chmod +x raycast/*.sh
+chmod +x raycast/trf/*.sh
+chmod +x raycast/yabai/*.sh
+```
+
+4. **Raycast配置**
+- 将脚本目录添加到Raycast扩展目录
+- 在Raycast中刷新扩展列表
+- 为常用脚本设置快捷键
+
+## 📚 common_functions.sh 公共函数库
+
+提供统一的基础功能：
+
+### 🎯 核心函数
+```bash
+# Finder操作
+get_finder_selection_single()      # 获取单个选中项
+get_finder_selection_multiple()    # 获取多个选中项
+get_finder_current_dir()          # 获取当前Finder目录
+
+# 消息显示
+show_success()    # ✅ 成功消息
+show_error()      # ❌ 错误消息  
+show_warning()    # ⚠️ 警告消息
+show_processing() # 🔄 处理中消息
+
+# 工具函数
+check_file_extension()      # 检查文件扩展名
+safe_cd()                  # 安全切换目录
+check_command_exists()     # 检查命令是否存在
+run_in_ghostty()          # 在Ghostty中执行命令
+```
+
+### 📦 预定义常量
+```bash
+PYTHON_PATH     # Python解释器路径
+MINIFORGE_BIN   # miniforge3二进制目录
+SCRIPTS_DIR     # 脚本根目录
+```
+
+## 💡 使用技巧
+
+### 高效工作流程
+1. **开发环境**: 使用 `Cursor/Windsurf` 快速打开项目
+2. **终端操作**: 使用 `Ghostty` 在项目目录启动终端
+3. **文件编辑**: 使用 `Nvim in Ghostty` 快速编辑文件
+4. **脚本执行**: 使用 `Run File` 或 `Run Files in Parallel` 执行脚本
+5. **文件管理**: 使用各种文件操作工具整理项目结构
+
+### 快捷键建议
+```
+⌘ + ⌥ + C    # Cursor
+⌘ + ⌥ + T    # Ghostty Terminal  
+⌘ + ⌥ + V    # Nvim in Ghostty
+⌘ + ⌥ + R    # Run File
+⌘ + ⌥ + F    # FZF Goto Folder
+```
+
+## 🐛 故障排除
+
+### 常见问题
+
+**❌ 脚本权限错误**
+```bash
+chmod +x raycast/*.sh
+```
+
+**❌ Python路径错误**
+```bash
+# 检查Python路径
+which python3
+# 更新common_functions.sh中的PYTHON_PATH
+```
+
+**❌ Finder选择失败**
+```bash
+# 确保在Finder中选择了文件/文件夹
+# 检查Raycast有访问Finder的权限
+```
+
+**❌ 应用程序启动失败**
+```bash
+# 确保目标应用程序已安装
+# 检查应用程序名称是否正确
+```
+
+### 调试方法
+```bash
+# 直接运行脚本查看错误
+bash -x script_name.sh
+
+# 检查日志输出
+tail -f /tmp/raycast_debug.log
+```
+
+## 📈 更新日志
+
+- **v2.0**: 添加了统一的公共函数库
+- **v1.8**: 新增并行脚本执行功能
+- **v1.5**: 添加了Yabai窗口管理工具
+- **v1.3**: 新增文件格式转换工具集
+- **v1.0**: 初始版本，包含基础文件操作和应用启动功能
+
+## 🤝 贡献
+
+欢迎提交Issue和Pull Request来改进这个工具集！
+
+## 📄 许可证
+
+MIT License - 详见LICENSE文件 
