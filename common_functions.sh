@@ -1,8 +1,16 @@
 #!/bin/bash
 
-# ===== 常量定义 =====
+# ===== Shell脚本通用函数库 =====
+# 版本: 2.0.0 (重构版)
+# 适用于: execute目录下的所有Shell脚本
+
+# ===== 基础配置 =====
+
+# Python路径配置
 readonly PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
 readonly MINIFORGE_BIN="/Users/tianli/miniforge3/bin"
+
+# 目录路径配置
 readonly SCRIPTS_DIR="/Users/tianli/useful_scripts"
 readonly EXECUTE_DIR="/Users/tianli/useful_scripts/execute"
 
@@ -13,106 +21,7 @@ readonly YELLOW='\033[1;33m'
 readonly BLUE='\033[0;34m'
 readonly NC='\033[0m' # No Color
 
-# ===== 通用函数 =====
-
-# 获取 Finder 中选中的单个文件/文件夹
-# 返回: 文件路径或空字符串
-get_finder_selection_single() {
-    osascript <<'EOF'
-tell application "Finder"
-    if (count of (selection as list)) > 0 then
-        POSIX path of (item 1 of (selection as list) as alias)
-    else
-        ""
-    end if
-end tell
-EOF
-}
-
-# 获取 Finder 中选中的多个文件/文件夹
-# 返回: 逗号分隔的路径列表
-get_finder_selection_multiple() {
-    osascript <<'EOF'
-tell application "Finder"
-    set selectedItems to selection as list
-    set posixPaths to {}
-    
-    if (count of selectedItems) > 0 then
-        repeat with i from 1 to count of selectedItems
-            set thisItem to item i of selectedItems
-            set end of posixPaths to POSIX path of (thisItem as alias)
-        end repeat
-        
-        set AppleScript's text item delimiters to ","
-        set pathsText to posixPaths as text
-        set AppleScript's text item delimiters to ""
-        return pathsText
-    else
-        return ""
-    end if
-end tell
-EOF
-}
-
-# 获取当前 Finder 目录或选中项目的目录
-get_finder_current_dir() {
-    osascript <<'EOF'
-tell application "Finder"
-    if (count of (selection as list)) > 0 then
-        set firstItem to item 1 of (selection as list)
-        if class of firstItem is folder then
-            POSIX path of (firstItem as alias)
-        else
-            POSIX path of (container of firstItem as alias)
-        end if
-    else
-        POSIX path of (insertion location as alias)
-    end if
-end tell
-EOF
-}
-
-# 检查文件扩展名
-# 参数: $1 = 文件路径, $2 = 期望的扩展名（不带点）
-# 返回: 0 = 匹配, 1 = 不匹配
-check_file_extension() {
-    local file="$1"
-    local expected_ext="$2"
-    local actual_ext="${file##*.}"
-    
-    [[ "$(echo "$actual_ext" | tr '[:upper:]' '[:lower:]')" == "$(echo "$expected_ext" | tr '[:upper:]' '[:lower:]')" ]]
-}
-
-# 在 Ghostty 中执行命令
-# 参数: $1 = 要执行的命令
-run_in_ghostty() {
-    local command="$1"
-    local command_escaped=$(printf "%s" "$command" | sed 's/"/\\"/g')
-    
-    osascript <<EOF
-tell application "Ghostty"
-    activate
-    tell application "System Events"
-        keystroke "n" using command down
-    end tell
-end tell
-EOF
-    
-    sleep 1
-    
-    osascript <<EOF
-tell application "Ghostty"
-    activate
-    delay 0.2
-    set the clipboard to "$command_escaped"
-    tell application "System Events"
-        keystroke "v" using command down
-        delay 0.1
-        key code 36
-    end tell
-end tell
-EOF
-}
+# ===== 核心显示函数 =====
 
 # 显示成功消息
 # 参数: $1 = 消息内容
@@ -144,28 +53,48 @@ show_info() {
     echo -e "${BLUE}ℹ️ $1${NC}"
 }
 
-# 安全切换目录
-# 参数: $1 = 目标目录
-# 返回: 0 = 成功, 1 = 失败
-safe_cd() {
-    local target_dir="$1"
-    if cd "$target_dir" 2>/dev/null; then
-        return 0
+# 显示进度
+# 参数: $1 = 当前数量, $2 = 总数量, $3 = 项目名称(可选)
+show_progress() {
+    local current="$1"
+    local total="$2"
+    local item="${3:-项目}"
+    
+    if [ "$total" != "?" ]; then
+        local percentage=$((current * 100 / total))
+        show_processing "进度: $percentage% ($current/$total) - $item"
     else
-        show_error "无法进入目录: $target_dir"
-        return 1
+        show_processing "处理中 ($current): $item"
     fi
 }
 
-# 检查命令是否存在
-# 参数: $1 = 命令名称
-check_command_exists() {
-    local cmd="$1"
-    if ! command -v "$cmd" &> /dev/null; then
-        show_error "$cmd 未安装"
-        return 1
-    fi
-    return 0
+# ===== 文件操作函数 =====
+
+# 检查文件扩展名
+# 参数: $1 = 文件路径, $2 = 期望的扩展名（不带点）
+# 返回: 0 = 匹配, 1 = 不匹配
+check_file_extension() {
+    local file="$1"
+    local expected_ext="$2"
+    local actual_ext="${file##*.}"
+    
+    [[ "$(echo "$actual_ext" | tr '[:upper:]' '[:lower:]')" == "$(echo "$expected_ext" | tr '[:upper:]' '[:lower:]')" ]]
+}
+
+# 获取文件基本名称（不含扩展名）
+# 参数: $1 = 文件路径
+# 返回: 文件基本名称
+get_file_basename() {
+    local file="$1"
+    basename "${file%.*}"
+}
+
+# 获取文件扩展名
+# 参数: $1 = 文件路径
+# 返回: 文件扩展名（小写）
+get_file_extension() {
+    local file="$1"
+    echo "${file##*.}" | tr '[:upper:]' '[:lower:]'
 }
 
 # 验证文件路径安全性
@@ -179,55 +108,6 @@ validate_file_path() {
         return 1
     fi
     return 0
-}
-
-# 检查文件大小
-# 参数: $1 = 文件路径, $2 = 最大大小(MB,可选,默认100)
-# 返回: 0 = 文件大小正常, 1 = 文件过大
-check_file_size() {
-    local file="$1"
-    local max_size_mb=${2:-100}
-    local size_mb=$(du -m "$file" 2>/dev/null | cut -f1)
-    
-    if [ -z "$size_mb" ]; then
-        show_error "无法获取文件大小: $file"
-        return 1
-    fi
-    
-    if [ $size_mb -gt $max_size_mb ]; then
-        show_warning "文件较大 (${size_mb}MB)，处理可能需要较长时间"
-        return 1
-    fi
-    return 0
-}
-
-# 带重试机制的命令执行
-# 参数: $@ = 要执行的命令
-# 返回: 命令执行结果
-retry_command() {
-    local max_attempts=3
-    local attempt=1
-    
-    while [ $attempt -le $max_attempts ]; do
-        if "$@"; then
-            return 0
-        fi
-        show_warning "第 $attempt 次尝试失败，正在重试..."
-        ((attempt++))
-        sleep 1
-    done
-    
-    show_error "命令执行失败，已重试 $max_attempts 次"
-    return 1
-}
-
-# 运行AppleScript
-# 参数: $1 = AppleScript代码
-run_applescript() {
-    local script="$1"
-    osascript <<EOF
-$script
-EOF
 }
 
 # 验证输入文件
@@ -254,23 +134,68 @@ validate_input_file() {
     return 0
 }
 
-# 显示进度
-# 参数: $1 = 当前数量, $2 = 总数量, $3 = 项目名称(可选)
-show_progress() {
-    local current="$1"
-    local total="$2"
-    local item="${3:-项目}"
-    show_processing "处理中 ($current/$total): $item"
+# ===== 目录操作函数 =====
+
+# 安全切换目录
+# 参数: $1 = 目标目录
+# 返回: 0 = 成功, 1 = 失败
+safe_cd() {
+    local target_dir="$1"
+    if cd "$target_dir" 2>/dev/null; then
+        return 0
+    else
+        show_error "无法进入目录: $target_dir"
+        return 1
+    fi
 }
 
-# 显示百分比进度
-# 参数: $1 = 当前数量, $2 = 总数量
-show_percentage() {
-    local current="$1"
-    local total="$2"
-    local percentage=$((current * 100 / total))
-    echo -e "${BLUE}📊 进度: $percentage% ($current/$total)${NC}"
+# 确保目录存在
+# 参数: $1 = 目录路径
+ensure_directory() {
+    local dir="$1"
+    if [ ! -d "$dir" ]; then
+        mkdir -p "$dir" || {
+            show_error "无法创建目录: $dir"
+            return 1
+        }
+    fi
+    return 0
 }
+
+# ===== 命令执行函数 =====
+
+# 检查命令是否存在
+# 参数: $1 = 命令名称
+check_command_exists() {
+    local cmd="$1"
+    if ! command -v "$cmd" &> /dev/null; then
+        show_error "$cmd 未安装"
+        return 1
+    fi
+    return 0
+}
+
+# 带重试机制的命令执行
+# 参数: $@ = 要执行的命令
+# 返回: 命令执行结果
+retry_command() {
+    local max_attempts=3
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        if "$@"; then
+            return 0
+        fi
+        show_warning "第 $attempt 次尝试失败，正在重试..."
+        ((attempt++))
+        sleep 1
+    done
+    
+    show_error "命令执行失败，已重试 $max_attempts 次"
+    return 1
+}
+
+# ===== 错误处理函数 =====
 
 # 致命错误 - 立即退出
 # 参数: $1 = 错误消息
@@ -286,50 +211,7 @@ recoverable_error() {
     return 1
 }
 
-# 创建临时目录
-# 返回: 临时目录路径
-create_temp_dir() {
-    local temp_dir=$(mktemp -d)
-    echo "$temp_dir"
-}
-
-# 清理临时文件
-# 参数: $1 = 临时目录路径
-cleanup_temp_dir() {
-    local temp_dir="$1"
-    if [ -d "$temp_dir" ]; then
-        rm -rf "$temp_dir"
-    fi
-}
-
-# 获取文件基本名称（不含扩展名）
-# 参数: $1 = 文件路径
-# 返回: 文件基本名称
-get_file_basename() {
-    local file="$1"
-    basename "${file%.*}"
-}
-
-# 获取文件扩展名
-# 参数: $1 = 文件路径
-# 返回: 文件扩展名（小写）
-get_file_extension() {
-    local file="$1"
-    echo "${file##*.}" | tr '[:upper:]' '[:lower:]'
-}
-
-# 确保目录存在
-# 参数: $1 = 目录路径
-ensure_directory() {
-    local dir="$1"
-    if [ ! -d "$dir" ]; then
-        mkdir -p "$dir" || {
-            show_error "无法创建目录: $dir"
-            return 1
-        }
-    fi
-    return 0
-}
+# ===== Python环境检查函数 =====
 
 # 检查Python环境
 check_python_env() {
@@ -357,4 +239,79 @@ check_python_packages() {
         return 1
     fi
     return 0
+}
+
+# ===== 实用工具函数 =====
+
+# 检查文件大小
+# 参数: $1 = 文件路径, $2 = 最大大小(MB,可选,默认100)
+# 返回: 0 = 文件大小正常, 1 = 文件过大
+check_file_size() {
+    local file="$1"
+    local max_size_mb=${2:-100}
+    local size_mb=$(du -m "$file" 2>/dev/null | cut -f1)
+    
+    if [ -z "$size_mb" ]; then
+        show_error "无法获取文件大小: $file"
+        return 1
+    fi
+    
+    if [ $size_mb -gt $max_size_mb ]; then
+        show_warning "文件较大 (${size_mb}MB)，处理可能需要较长时间"
+        return 1
+    fi
+    return 0
+}
+
+# 创建临时目录
+# 返回: 临时目录路径
+create_temp_dir() {
+    local temp_dir=$(mktemp -d)
+    echo "$temp_dir"
+}
+
+# 清理临时文件
+# 参数: $1 = 临时目录路径
+cleanup_temp_dir() {
+    local temp_dir="$1"
+    if [ -d "$temp_dir" ]; then
+        rm -rf "$temp_dir"
+    fi
+}
+
+# 运行AppleScript (仅在需要时使用)
+# 参数: $1 = AppleScript代码
+run_applescript() {
+    local script="$1"
+    osascript <<EOF
+$script
+EOF
+}
+
+# ===== 版本和帮助函数模板 =====
+
+# 标准版本显示函数模板
+# 使用方法: 在脚本中定义 SCRIPT_VERSION, SCRIPT_AUTHOR, SCRIPT_UPDATED 变量后调用
+show_version_template() {
+    echo "脚本版本: ${SCRIPT_VERSION:-未知}"
+    echo "作者: ${SCRIPT_AUTHOR:-未知}"
+    echo "更新日期: ${SCRIPT_UPDATED:-未知}"
+}
+
+# 标准帮助信息头部模板
+show_help_header() {
+    local script_name="$1"
+    local script_desc="$2"
+    echo "$script_desc"
+    echo ""
+    echo "用法: $script_name [选项] [参数]"
+    echo ""
+    echo "选项:"
+}
+
+# 标准帮助信息尾部模板
+show_help_footer() {
+    echo "    -h, --help       显示此帮助信息"
+    echo "    --version        显示版本信息"
+    echo ""
 } 
