@@ -13,6 +13,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 添加图形化界面
 - 跨平台支持(Linux/Windows)
 
+## [2.1.0] - 2024-01-20
+
+### Added
+- 📋 **Execute脚本代码规范文档 v2.0**
+  - 统一Shell和Python脚本的设计模式
+  - 建立完整的编码规范体系
+  - 定义标准代码结构模板
+  - 规范错误处理和安全性要求
+- 🔄 **文件重命名标准化**
+  - 执行了21个脚本的批量重命名
+  - 统一了文件命名规范（功能前缀_对象_转换方向）
+  - 创建向后兼容的软链接
+  - 更新了相关脚本中的引用路径
+
+### Changed
+- 🏗️ **重构通用函数库**
+  - `common_functions.sh` - 专为execute脚本优化
+  - `common_utils.py` - Python脚本通用工具模块
+  - 移除了Raycast相关的特定功能
+  - 增强了文件操作和错误处理能力
+- 📝 **更新项目文档**
+  - `COMMON_FUNCTIONS_USAGE.md` - 详细的使用指南
+  - `RENAME_SUGGESTIONS.md` - 完整的重命名方案
+  - `CODE_STANDARDS.md` - execute脚本专用代码规范
+
+### Enhanced
+- ⚡ **脚本功能增强**
+  - 所有脚本支持标准化的参数处理
+  - 统一的进度显示和错误处理
+  - 完善的依赖检查机制
+  - 改进的用户体验和消息显示
+
 ## [2.0.0] - 2024-01-20
 
 ### Added

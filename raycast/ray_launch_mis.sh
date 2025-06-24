@@ -10,8 +10,8 @@
 # 引入通用函数库
 source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
-# 调用launch_mis.sh脚本
-SCRIPT_PATH="$SCRIPTS_DIR/execute/launch_mis.sh"
+# 调用manage_app_launcher.sh脚本
+SCRIPT_PATH="$SCRIPTS_DIR/execute/manage_app_launcher.sh"
 
 # 检查脚本是否存在
 if [ ! -f "$SCRIPT_PATH" ]; then
