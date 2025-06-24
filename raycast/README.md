@@ -31,7 +31,8 @@ raycast/
 - **File Run Parallel** (`ray_file_run_parallel.sh`): 并行运行多个脚本文件
 
 ### 🔧 实用工具
-- **Tool Compare Data** (`ray_tool_compare_data.sh`): 比较两个Excel文件数据
+- **Tool Compare Excel** (`ray_tool_compare_excel.sh`): 精确比较两个Excel文件的数据差异
+- **Tool Compare Files** (`ray_tool_compare_files.sh`): 比较两个文件或文件夹的差异
 - **Tool Split Excel** (`ray_tool_split_excel.sh`): 将Excel文件拆分为单独的工作表
 - **Tool Find Folder** (`ray_tool_find_folder.sh`): 使用FZF快速跳转到文件夹
 
@@ -116,9 +117,26 @@ raycast/
 
 #### **Excel数据比较**
 ```bash
-# 功能: 比较两个Excel文件的差异
-# 使用: 选择恰好两个Excel文件
+# ray_tool_compare_excel.sh
+# 功能: 精确比较两个Excel文件的数值数据差异
+# 使用: 选择恰好两个Excel文件 (.xlsx/.xls)
+# 特点: 
+# - 支持容差比较
+# - 逐个工作表分析
+# - 精确定位差异位置
 # 输出: 详细的差异分析报告
+```
+
+#### **文件/文件夹比较**
+```bash
+# ray_tool_compare_files.sh
+# 功能: 比较任意两个文件或文件夹的差异
+# 使用: 选择恰好两个文件或文件夹
+# 特点:
+# - 支持任何文件类型
+# - 智能识别文件/目录类型
+# - 使用diff显示具体差异
+# 输出: 差异详情和比较结果
 ```
 
 #### **Excel工作表拆分**
