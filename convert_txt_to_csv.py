@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CSV转XLSX转换工具 - 将CSV文件转换为Excel XLSX格式
+TXT转CSV转换工具 - 将文本文件转换为CSV格式
 版本: 2.0.0
 作者: tianli
 更新: 2024-01-01
@@ -8,6 +8,7 @@ CSV转XLSX转换工具 - 将CSV文件转换为Excel XLSX格式
 
 import sys
 import csv
+import re
 import argparse
 from pathlib import Path
 from typing import Optional, List
@@ -29,48 +30,49 @@ def check_dependencies() -> bool:
     """检查依赖"""
     show_info("检查依赖项...")
     
-    # 检查必要的Python包
-    if not check_python_packages(['openpyxl']):
-        return False
-    
+    # CSV和re模块是Python标准库，无需额外检查
     show_success("依赖检查完成")
     return True
 
-def convert_csv_to_xlsx_single(input_file: Path, output_file: Optional[Path] = None) -> bool:
-    """将单个CSV文件转换为XLSX格式"""
+def convert_txt_to_csv_single(input_file: Path, output_file: Optional[Path] = None) -> bool:
+    """将单个TXT文件转换为CSV格式"""
     try:
         # 验证输入文件
         if not validate_input_file(input_file):
             return False
         
         # 检查文件扩展名
-        if not check_file_extension(input_file, 'csv'):
+        if not check_file_extension(input_file, 'txt'):
             show_warning(f"跳过不支持的文件: {input_file.name}")
             return False
         
         # 生成输出文件名
         if output_file is None:
-            output_file = input_file.with_suffix('.xlsx')
+            output_file = input_file.with_suffix('.csv')
         
         show_processing(f"转换: {input_file.name} -> {output_file.name}")
         
-        # 导入openpyxl
-        try:
-            from openpyxl import Workbook
-        except ImportError:
-            show_error("缺少依赖包: openpyxl")
-            return False
-        
-        # 执行转换
-        wb = Workbook()
-        ws = wb.active
-        
+        # 读取并处理文本文件
         with open(input_file, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                ws.append(row)
+            content = f.readlines()
         
-        wb.save(output_file)
+        # 处理每一行
+        processed_lines = []
+        for line in content:
+            # 去除首尾空白字符
+            line = line.strip()
+            if not line:
+                continue
+                
+            # 使用正则表达式替换连续的空白字符为单个逗号
+            # 这会处理空格、制表符等
+            line = re.sub(r'\s+', ',', line)
+            processed_lines.append(line.split(','))
+        
+        # 写入CSV文件
+        with open(output_file, 'w', encoding='utf-8', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerows(processed_lines)
         
         show_success(f"转换完成: {output_file}")
         return True
@@ -80,17 +82,17 @@ def convert_csv_to_xlsx_single(input_file: Path, output_file: Optional[Path] = N
         return False
 
 def batch_process(directory: Path, recursive: bool = False) -> None:
-    """批量处理CSV文件"""
+    """批量处理TXT文件"""
     show_info(f"处理目录: {directory}")
     
-    # 查找CSV文件
-    files = find_files_by_extension(directory, 'csv', recursive)
+    # 查找TXT文件
+    files = find_files_by_extension(directory, 'txt', recursive)
     
     if not files:
-        show_warning("未找到CSV文件")
+        show_warning("未找到TXT文件")
         return
     
-    show_info(f"找到 {len(files)} 个CSV文件")
+    show_info(f"找到 {len(files)} 个TXT文件")
     
     # 初始化进度跟踪器
     tracker = ProgressTracker()
@@ -99,7 +101,7 @@ def batch_process(directory: Path, recursive: bool = False) -> None:
     for i, file in enumerate(files, 1):
         show_progress(i, len(files), file.name)
         
-        if convert_csv_to_xlsx_single(file):
+        if convert_txt_to_csv_single(file):
             tracker.add_success()
         else:
             tracker.add_failure()
@@ -114,14 +116,14 @@ def show_version() -> None:
 def show_help() -> None:
     """显示帮助信息"""
     print(f"""
-CSV转XLSX转换工具 - 将CSV文件转换为Excel XLSX格式
+TXT转CSV转换工具 - 将文本文件转换为CSV格式
 
 用法:
     python3 {sys.argv[0]} [选项] [输入] [输出]
 
 参数:
-    输入            输入CSV文件或目录
-    输出            输出XLSX文件（可选，仅对单文件有效）
+    输入            输入TXT文件或目录
+    输出            输出CSV文件（可选，仅对单文件有效）
 
 选项:
     -r, --recursive  递归处理子目录
@@ -129,29 +131,27 @@ CSV转XLSX转换工具 - 将CSV文件转换为Excel XLSX格式
     --version        显示版本信息
 
 示例:
-    python3 {sys.argv[0]} data.csv               # 转换单个文件
-    python3 {sys.argv[0]} data.csv output.xlsx  # 指定输出文件
+    python3 {sys.argv[0]} data.txt               # 转换单个文件
+    python3 {sys.argv[0]} data.txt output.csv   # 指定输出文件
     python3 {sys.argv[0]} ./data_dir             # 批量转换目录
     python3 {sys.argv[0]} -r ./data_dir          # 递归转换目录
 
 功能:
-    - 将CSV文件转换为Excel XLSX格式
+    - 将文本文件转换为CSV格式
+    - 自动识别空白字符作为分隔符
     - 支持单文件和批量处理
     - 自动处理编码问题
-
-依赖:
-    - openpyxl
     """)
 
 def main():
     """主函数"""
     parser = argparse.ArgumentParser(
-        description='CSV转XLSX转换工具',
+        description='TXT转CSV转换工具',
         add_help=False
     )
     
-    parser.add_argument('input', nargs='?', help='输入CSV文件或目录')
-    parser.add_argument('output', nargs='?', help='输出XLSX文件')
+    parser.add_argument('input', nargs='?', help='输入TXT文件或目录')
+    parser.add_argument('output', nargs='?', help='输出CSV文件')
     parser.add_argument('-r', '--recursive', action='store_true', help='递归处理子目录')
     parser.add_argument('-h', '--help', action='store_true', help='显示帮助信息')
     parser.add_argument('--version', action='store_true', help='显示版本信息')
@@ -183,7 +183,7 @@ def main():
             if args.output:
                 output_path = Path(args.output)
             
-            if not convert_csv_to_xlsx_single(input_path, output_path):
+            if not convert_txt_to_csv_single(input_path, output_path):
                 sys.exit(1)
         elif input_path.is_dir():
             # 目录处理
@@ -192,4 +192,4 @@ def main():
             fatal_error(f"输入路径不存在: {input_path}")
 
 if __name__ == "__main__":
-    main()
+    main() 

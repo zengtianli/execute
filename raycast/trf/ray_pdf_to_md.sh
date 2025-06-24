@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title pdf2md
+# @raycast.title pdf_to_md
 # @raycast.mode silent
 # @raycast.icon 📄
 # @raycast.packageName Custom

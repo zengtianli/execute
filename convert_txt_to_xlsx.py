@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-CSV转XLSX转换工具 - 将CSV文件转换为Excel XLSX格式
+TXT转XLSX转换工具 - 将制表符分隔的文本文件转换为Excel XLSX格式
 版本: 2.0.0
 作者: tianli
 更新: 2024-01-01
 """
 
 import sys
-import csv
 import argparse
 from pathlib import Path
 from typing import Optional, List
@@ -30,21 +29,21 @@ def check_dependencies() -> bool:
     show_info("检查依赖项...")
     
     # 检查必要的Python包
-    if not check_python_packages(['openpyxl']):
+    if not check_python_packages(['pandas']):
         return False
     
     show_success("依赖检查完成")
     return True
 
-def convert_csv_to_xlsx_single(input_file: Path, output_file: Optional[Path] = None) -> bool:
-    """将单个CSV文件转换为XLSX格式"""
+def convert_txt_to_xlsx_single(input_file: Path, output_file: Optional[Path] = None) -> bool:
+    """将单个TXT文件转换为XLSX格式"""
     try:
         # 验证输入文件
         if not validate_input_file(input_file):
             return False
         
         # 检查文件扩展名
-        if not check_file_extension(input_file, 'csv'):
+        if not check_file_extension(input_file, 'txt'):
             show_warning(f"跳过不支持的文件: {input_file.name}")
             return False
         
@@ -54,23 +53,18 @@ def convert_csv_to_xlsx_single(input_file: Path, output_file: Optional[Path] = N
         
         show_processing(f"转换: {input_file.name} -> {output_file.name}")
         
-        # 导入openpyxl
+        # 导入pandas
         try:
-            from openpyxl import Workbook
+            import pandas as pd
         except ImportError:
-            show_error("缺少依赖包: openpyxl")
+            show_error("缺少依赖包: pandas")
             return False
         
-        # 执行转换
-        wb = Workbook()
-        ws = wb.active
+        # 读取制表符分隔的文本文件
+        df = pd.read_csv(input_file, sep='\t', encoding='utf-8')
         
-        with open(input_file, 'r', encoding='utf-8') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                ws.append(row)
-        
-        wb.save(output_file)
+        # 将数据框保存为 Excel 文件
+        df.to_excel(output_file, index=False)
         
         show_success(f"转换完成: {output_file}")
         return True
@@ -80,17 +74,17 @@ def convert_csv_to_xlsx_single(input_file: Path, output_file: Optional[Path] = N
         return False
 
 def batch_process(directory: Path, recursive: bool = False) -> None:
-    """批量处理CSV文件"""
+    """批量处理TXT文件"""
     show_info(f"处理目录: {directory}")
     
-    # 查找CSV文件
-    files = find_files_by_extension(directory, 'csv', recursive)
+    # 查找TXT文件
+    files = find_files_by_extension(directory, 'txt', recursive)
     
     if not files:
-        show_warning("未找到CSV文件")
+        show_warning("未找到TXT文件")
         return
     
-    show_info(f"找到 {len(files)} 个CSV文件")
+    show_info(f"找到 {len(files)} 个TXT文件")
     
     # 初始化进度跟踪器
     tracker = ProgressTracker()
@@ -99,7 +93,7 @@ def batch_process(directory: Path, recursive: bool = False) -> None:
     for i, file in enumerate(files, 1):
         show_progress(i, len(files), file.name)
         
-        if convert_csv_to_xlsx_single(file):
+        if convert_txt_to_xlsx_single(file):
             tracker.add_success()
         else:
             tracker.add_failure()
@@ -114,13 +108,13 @@ def show_version() -> None:
 def show_help() -> None:
     """显示帮助信息"""
     print(f"""
-CSV转XLSX转换工具 - 将CSV文件转换为Excel XLSX格式
+TXT转XLSX转换工具 - 将制表符分隔的文本文件转换为Excel XLSX格式
 
 用法:
     python3 {sys.argv[0]} [选项] [输入] [输出]
 
 参数:
-    输入            输入CSV文件或目录
+    输入            输入TXT文件或目录
     输出            输出XLSX文件（可选，仅对单文件有效）
 
 选项:
@@ -129,28 +123,28 @@ CSV转XLSX转换工具 - 将CSV文件转换为Excel XLSX格式
     --version        显示版本信息
 
 示例:
-    python3 {sys.argv[0]} data.csv               # 转换单个文件
-    python3 {sys.argv[0]} data.csv output.xlsx  # 指定输出文件
+    python3 {sys.argv[0]} data.txt               # 转换单个文件
+    python3 {sys.argv[0]} data.txt output.xlsx  # 指定输出文件
     python3 {sys.argv[0]} ./data_dir             # 批量转换目录
     python3 {sys.argv[0]} -r ./data_dir          # 递归转换目录
 
 功能:
-    - 将CSV文件转换为Excel XLSX格式
+    - 将制表符分隔的文本文件转换为Excel XLSX格式
     - 支持单文件和批量处理
     - 自动处理编码问题
 
 依赖:
-    - openpyxl
+    - pandas
     """)
 
 def main():
     """主函数"""
     parser = argparse.ArgumentParser(
-        description='CSV转XLSX转换工具',
+        description='TXT转XLSX转换工具',
         add_help=False
     )
     
-    parser.add_argument('input', nargs='?', help='输入CSV文件或目录')
+    parser.add_argument('input', nargs='?', help='输入TXT文件或目录')
     parser.add_argument('output', nargs='?', help='输出XLSX文件')
     parser.add_argument('-r', '--recursive', action='store_true', help='递归处理子目录')
     parser.add_argument('-h', '--help', action='store_true', help='显示帮助信息')
@@ -183,7 +177,7 @@ def main():
             if args.output:
                 output_path = Path(args.output)
             
-            if not convert_csv_to_xlsx_single(input_path, output_path):
+            if not convert_txt_to_xlsx_single(input_path, output_path):
                 sys.exit(1)
         elif input_path.is_dir():
             # 目录处理
@@ -192,4 +186,4 @@ def main():
             fatal_error(f"输入路径不存在: {input_path}")
 
 if __name__ == "__main__":
-    main()
+    main() 

@@ -5,19 +5,19 @@
 ## 功能概览
 
 ### 📊 表格文件转换
-- **csv2txt**: CSV → TXT
-- **csv2xlsx**: CSV → XLSX  
-- **txt2csv**: TXT → CSV
-- **txt2xlsx**: TXT → XLSX
-- **xlsx2csv**: XLSX → CSV (转换所有工作表)
-- **xlsx2txt**: XLSX/XLS → TXT
-- **xls2xlsx**: XLS → XLSX
+- **csv_to_txt**: CSV → TXT
+- **csv_to_xlsx**: CSV → XLSX  
+- **txt_to_csv**: TXT → CSV
+- **txt_to_xlsx**: TXT → XLSX
+- **xlsx_to_csv**: XLSX → CSV (转换所有工作表)
+- **xlsx_to_txt**: XLSX/XLS → TXT
+- **xls_to_xlsx**: XLS → XLSX
 
 ### 📄 文档转换
-- **doc2docx**: DOC → DOCX
-- **d2m**: DOCX → Markdown
-- **m2d**: Markdown → DOCX
-- **pdf2md**: PDF → Markdown
+- **doc_to_docx**: DOC → DOCX
+- **docx_to_md**: DOCX → Markdown
+- **md_to_docx**: Markdown → DOCX
+- **pdf_to_md**: PDF → Markdown
 
 ## 使用方法
 
@@ -30,28 +30,28 @@
 ### 具体说明
 
 #### 表格文件转换
-- **csv2txt** / **csv2xlsx**: 选择单个CSV文件进行转换
-- **txt2csv** / **txt2xlsx**: 选择单个或多个TXT文件进行转换
-- **xlsx2csv**: 选择单个XLSX文件，将所有工作表转换为CSV
-- **xlsx2txt**: 支持XLS和XLSX格式，选择单个文件转换
-- **xls2xlsx**: 选择单个或多个XLS文件转换为XLSX格式
+- **csv_to_txt** / **csv_to_xlsx**: 选择单个CSV文件进行转换
+- **txt_to_csv** / **txt_to_xlsx**: 选择单个或多个TXT文件进行转换
+- **xlsx_to_csv**: 选择单个XLSX文件，将所有工作表转换为CSV
+- **xlsx_to_txt**: 支持XLS和XLSX格式，选择单个文件转换
+- **xls_to_xlsx**: 选择单个或多个XLS文件转换为XLSX格式
 
 #### 文档转换
-- **doc2docx**: 
+- **doc_to_docx**: 
   - 如果选择了文件：转换选中的DOC文件
   - 如果未选择：转换当前目录下所有DOC文件
   - 使用Microsoft Word进行转换
   
-- **d2m**: 
+- **docx_to_md**: 
   - 支持单个DOCX文件或整个文件夹
   - 使用markitdown工具进行转换
   - 可批量处理文件夹中的所有DOCX文件
   
-- **m2d**: 
+- **md_to_docx**: 
   - 选择单个Markdown文件
   - 使用docx_styler进行转换
   
-- **pdf2md**: 
+- **pdf_to_md**: 
   - 支持选择多个PDF文件
   - 使用marker_single工具进行转换
 
@@ -68,12 +68,12 @@
 
 ### Python脚本
 所有表格转换功能依赖于以下Python脚本：
-- `csvtxtxlsx/csv2txt.py`
-- `csvtxtxlsx/csv2xlsx.py`
-- `csvtxtxlsx/txt2csv.py`
-- `csvtxtxlsx/txt2xlsx.py`
-- `csvtxtxlsx/xlsx2csv.py`
-- `csvtxtxlsx/xlsx2txt.py`
+- `convert_csv_to_txt.py`
+- `convert_csv_to_xlsx.py`
+- `convert_txt_to_csv.py`
+- `convert_txt_to_xlsx.py`
+- `convert_xlsx_to_csv.py`
+- `convert_xlsx_to_txt.py`
 
 ## 安装配置
 

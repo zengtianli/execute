@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title d2m
+# @raycast.title docx_to_md
 # @raycast.mode silent
 # @raycast.icon 📂
 # @raycast.packageName Custom
@@ -11,7 +11,7 @@
 source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
 # 检查原始转换脚本是否存在
-CONVERT_SCRIPT="$SCRIPTS_DIR/execute/markitdown_docx2md.sh"
+CONVERT_SCRIPT="$SCRIPTS_DIR/execute/convert_docx_to_md.sh"
 if [ ! -f "$CONVERT_SCRIPT" ]; then
     show_error "找不到原始脚本: $CONVERT_SCRIPT"
     exit 1

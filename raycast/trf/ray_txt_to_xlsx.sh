@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title txt2xlsx
+# @raycast.title txt_to_xlsx
 # @raycast.mode silent
 # @raycast.icon 📊
 # @raycast.packageName Custom
@@ -56,7 +56,7 @@ do
     show_processing "正在将 $(basename "$FILE_PATH") 转换为 XLS 格式..."
     
     # 执行Python脚本处理单个文件
-    if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/csvtxtxlsx/txt2xlsx.py" "$FILE_PATH"; then
+    if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/convert_txt_to_xlsx.py" "$FILE_PATH"; then
         show_success "已将 $(basename "$FILE_PATH") 转换为 XLS 格式"
         SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
     else

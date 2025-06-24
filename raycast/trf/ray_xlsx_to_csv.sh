@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title xlsx2csv
+# @raycast.title xlsx_to_csv
 # @raycast.mode silent
 # @raycast.icon 📋
 # @raycast.packageName Custom
@@ -33,7 +33,7 @@ safe_cd "$FILE_DIR" || exit 1
 show_processing "正在将 $(basename "$SELECTED_FILE") 的所有工作表转换为 CSV 格式..."
 
 # 执行Python脚本，添加-a参数转换所有工作表
-if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/csvtxtxlsx/xlsx2csv.py" -a "$SELECTED_FILE"; then
+if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/convert_xlsx_to_csv.py" "$SELECTED_FILE"; then
     show_success "已将 $(basename "$SELECTED_FILE") 的所有工作表转换为 CSV 格式，保存在 $(basename "$FILE_DIR")"
 else
     show_error "转换失败"

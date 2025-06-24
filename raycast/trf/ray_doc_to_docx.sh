@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title Doc2Docx
+# @raycast.title doc_to_docx
 # @raycast.mode silent
 # @raycast.icon 📄
 # @raycast.packageName Custom
