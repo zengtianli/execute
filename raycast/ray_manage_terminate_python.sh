@@ -2,7 +2,7 @@
 
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title Terminate All Python
+# @raycast.title manage_terminate_python
 # @raycast.mode fullOutput
 # @raycast.icon ⏹️
 # @raycast.packageName Custom

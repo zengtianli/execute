@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title Run Files in Parallel
+# @raycast.title file_run_parallel
 # @raycast.mode fullOutput
 # @raycast.icon 🚀
 # @raycast.packageName Custom

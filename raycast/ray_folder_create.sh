@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title Create Folder
+# @raycast.title folder_create
 # @raycast.mode silent
 # @raycast.icon 📁
 # @raycast.packageName Custom

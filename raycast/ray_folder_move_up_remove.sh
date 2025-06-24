@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title move_up_remove
+# @raycast.title folder_move_up_remove
 # @raycast.mode silent
 # @raycast.icon 🗂️
 # @raycast.packageName Custom

@@ -15,27 +15,29 @@ raycast/
 ## 🚀 功能概览
 
 ### 📱 应用程序启动
-- **Cursor** (`ray_ap_cursor.sh`): 在当前Finder目录打开Cursor编辑器
-- **Ghostty** (`ray_ap_ghossty.sh`): 在当前Finder目录打开Ghostty终端
-- **Nvim in Ghostty** (`ray_ap_nvimGh.sh`): 在Ghostty中用Nvim打开选中文件
-- **Default Terminal** (`ray_ap_terminal.sh`): 在当前目录打开默认终端
-- **Windsurf** (`ray_ap_winsurf.sh`): 在当前目录打开Windsurf编辑器
+- **App Cursor** (`ray_app_cursor.sh`): 在当前Finder目录打开Cursor编辑器
+- **App Ghostty** (`ray_app_ghostty.sh`): 在当前Finder目录打开Ghostty终端
+- **App Nvim Ghostty** (`ray_app_nvim_ghostty.sh`): 在Ghostty中用Nvim打开选中文件
+- **App Terminal** (`ray_app_terminal.sh`): 在当前目录打开默认终端
+- **App Windsurf** (`ray_app_windsurf.sh`): 在当前目录打开Windsurf编辑器
 
-### 📁 文件管理
+### 📁 文件和文件夹管理
 - **Copy Filename** (`ray_copy_filename.sh`): 复制选中文件的文件名到剪贴板
-- **Copy Name and Content** (`ray_copy_filename_content.sh`): 复制文件名和内容到剪贴板
-- **Create Folder** (`ray_create_folder.sh`): 在选中位置创建新文件夹
-- **Move Up Remove** (`ray_move_up_remove.sh`): 将文件夹内容移到上级并删除空文件夹
-- **Add Folder Prefix** (`ray_add_folder_prefix.sh`): 为文件夹内文件添加文件夹名前缀
+- **Copy Name Content** (`ray_copy_name_content.sh`): 复制文件名和内容到剪贴板
+- **Folder Create** (`ray_folder_create.sh`): 在选中位置创建新文件夹
+- **Folder Move Up Remove** (`ray_folder_move_up_remove.sh`): 将文件夹内容移到上级并删除空文件夹
+- **Folder Add Prefix** (`ray_folder_add_prefix.sh`): 为文件夹内文件添加文件夹名前缀
+- **File Run Single** (`ray_file_run_single.sh`): 运行选中的shell或python脚本
+- **File Run Parallel** (`ray_file_run_parallel.sh`): 并行运行多个脚本文件
 
 ### 🔧 实用工具
-- **Run File** (`ray_ap_runfile.sh`): 运行选中的shell或python脚本
-- **Run Files in Parallel** (`ray_ap_runfile_1.sh`): 并行运行多个脚本文件
-- **Compare Data** (`ray_comp_data.sh`): 比较两个Excel文件数据
-- **Split Excel Sheets** (`ray_splitsheets.sh`): 将Excel文件拆分为单独的工作表
-- **FZF Goto Folder** (`ray_fgf.sh`): 使用FZF快速跳转到文件夹
-- **Launch MIS** (`ray_launch_mis.sh`): 启动必要的应用程序
-- **Terminate All Python** (`ray_terminate_py.sh`): 终止所有Python进程
+- **Tool Compare Data** (`ray_tool_compare_data.sh`): 比较两个Excel文件数据
+- **Tool Split Excel** (`ray_tool_split_excel.sh`): 将Excel文件拆分为单独的工作表
+- **Tool Find Folder** (`ray_tool_find_folder.sh`): 使用FZF快速跳转到文件夹
+
+### ⚙️ 管理工具
+- **Manage App Launcher** (`ray_manage_app_launcher.sh`): 启动必要的应用程序
+- **Manage Terminate Python** (`ray_manage_terminate_python.sh`): 终止所有Python进程
 
 ## 📖 详细功能说明
 
@@ -66,23 +68,23 @@ raycast/
 
 #### **文件内容复制**
 - **copy_filename**: 仅复制文件名
-- **copy_filename_content**: 复制文件名+完整内容
+- **copy_name_content**: 复制文件名+完整内容
 - 支持多文件批量操作
 - 自动格式化输出
 
 #### **文件夹管理**
 ```bash
-# Create Folder
+# folder_create
 # - 在选中位置创建新文件夹
 # - 自动处理重名冲突
 # - 支持在文件或文件夹上操作
 
-# Move Up Remove
+# folder_move_up_remove
 # - 递归移动文件夹内容到上级
 # - 自动添加前缀防止冲突
 # - 删除处理后的空文件夹
 
-# Add Folder Prefix
+# folder_add_prefix
 # - 批量为文件添加文件夹名前缀
 # - 防止重复添加前缀
 # - 支持多文件夹同时处理
@@ -90,7 +92,7 @@ raycast/
 
 ### ⚙️ 脚本执行工具
 
-#### **Run File (单文件)**
+#### **file_run_single (单文件)**
 ```bash
 # 支持格式: .sh, .py
 # 功能:
@@ -100,7 +102,7 @@ raycast/
 # - 成功/失败状态反馈
 ```
 
-#### **Run Files in Parallel (多文件)**
+#### **file_run_parallel (多文件)**
 ```bash
 # 支持格式: .sh, .py
 # 功能:
@@ -128,7 +130,7 @@ raycast/
 
 ### 🔍 导航工具
 
-#### **FZF文件夹跳转**
+#### **tool_find_folder (FZF文件夹跳转)**
 ```bash
 # 功能: 使用FZF快速查找并跳转到文件夹
 # 特点:

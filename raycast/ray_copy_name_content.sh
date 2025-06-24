@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title Copy name and content
+# @raycast.title copy_name_content
 # @raycast.mode silent
 # @raycast.icon 📋
 # @raycast.packageName Custom

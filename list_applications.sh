@@ -86,12 +86,25 @@ get_app_info() {
 }
 
 # 搜索应用程序
-# 参数: $1 = 目录列表, $2 = 搜索模式, $3 = 是否显示系统应用
+# 参数: 前面是目录列表，最后两个参数是搜索模式和是否显示系统应用
 find_applications() {
-    local directories=("$@")
-    local search_pattern="${directories[-2]}"
-    local show_system="${directories[-1]}"
-    unset 'directories[-1]' 'directories[-2]'
+    local args=("$@")
+    local arg_count=${#args[@]}
+    
+    # 提取最后两个参数
+    local search_pattern=""
+    local show_system="false"
+    
+    if [ $arg_count -ge 2 ]; then
+        search_pattern="${args[$((arg_count-2))]}"
+        show_system="${args[$((arg_count-1))]}"
+    fi
+    
+    # 构建目录数组（排除最后两个参数）
+    local directories=()
+    for ((i=0; i<arg_count-2; i++)); do
+        directories+=("${args[$i]}")
+    done
     
     local apps=()
     local total_found=0

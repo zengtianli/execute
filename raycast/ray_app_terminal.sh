@@ -1,11 +1,11 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title Ghostty
+# @raycast.title app_terminal
 # @raycast.mode fullOutput
-# @raycast.icon 👻
+# @raycast.icon 🖥️
 # @raycast.packageName Custom
-# @raycast.description Open Ghostty in current Finder directory
+# @raycast.description Open default terminal in current Finder directory
 
 # 引入通用函数库
 source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"

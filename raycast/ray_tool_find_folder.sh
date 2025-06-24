@@ -2,7 +2,7 @@
 
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title FZF Goto Folder
+# @raycast.title tool_find_folder
 # @raycast.mode fullOutput
 # @raycast.icon 🔍
 # @raycast.packageName Navigation

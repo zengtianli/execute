@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title Compare Data
+# @raycast.title tool_compare_data
 # @raycast.mode fullOutput
 # @raycast.icon 📊
 # @raycast.packageName Custom

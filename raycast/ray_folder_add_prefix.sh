@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title add_folder_prefix
+# @raycast.title folder_add_prefix
 # @raycast.mode silent
 # @raycast.icon 📝
 # @raycast.packageName Custom

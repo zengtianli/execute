@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title Run File
+# @raycast.title file_run_single
 # @raycast.mode silent
 # @raycast.icon 🚀
 # @raycast.packageName Custom

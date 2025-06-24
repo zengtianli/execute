@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title Nvim in Ghostty
+# @raycast.title app_nvim_ghostty
 # @raycast.mode silent
 # @raycast.icon 👻
 # @raycast.packageName Custom

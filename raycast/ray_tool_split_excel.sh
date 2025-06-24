@@ -1,7 +1,7 @@
 #!/bin/bash
 # Raycast parameters
 # @raycast.schemaVersion 1
-# @raycast.title Split Excel Sheets
+# @raycast.title tool_split_excel
 # @raycast.mode silent
 # @raycast.icon 📂
 # @raycast.packageName Custom
