@@ -14,8 +14,8 @@ def convert_wmf_files(directory):
     if wmf_files:
         print(f"  发现 {len(wmf_files)} 个 WMF 文件，尝试转换...")
         
-        # wmf2png.sh 脚本的路径
-        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wmf2png.sh")
+        # convert_wmf_to_png.sh 脚本的路径
+        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "convert_wmf_to_png.sh")
         
         try:
             # 调用 wmf2png.sh 脚本

@@ -7,8 +7,8 @@ RUNNING_APPS="$HOME/Desktop/running_apps.txt"
 echo "正在获取当前运行的应用程序列表..."
 # 获取脚本所在目录
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-# 执行 list_app.sh 脚本
-"$SCRIPT_DIR/list_app.sh"
+# 执行 list_applications.sh 脚本
+"$SCRIPT_DIR/list_applications.sh"
 
 # 检查文件是否存在
 if [ ! -f "$ESSENTIAL_APPS" ]; then
