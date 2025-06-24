@@ -6,31 +6,39 @@
 #   - xls -> xlsx -> csv
 #   - pptx -> md
 
-# 设置颜色输出
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# 引入通用函数库
+source "$(dirname "${BASH_SOURCE[0]}")/common_functions.sh"
 
-# 使用环境变量定义脚本路径
-SCRIPT_DIR="${SCRIPT_DIR:-/Users/tianli/useful_scripts}"
-EXECUTE_DIR="${EXECUTE_DIR:-$SCRIPT_DIR/execute}"
+# 脚本版本信息
+readonly SCRIPT_VERSION="2.0.0"
+readonly SCRIPT_AUTHOR="tianli"
+readonly SCRIPT_UPDATED="2024-01-01"
 
 # 定义各脚本的路径
-DOC2DOCX_SCRIPT="${DOC2DOCX_SCRIPT:-$SCRIPT_DIR/doc2docx.sh}"
-DOCX2MD_SCRIPT="${DOCX2MD_SCRIPT:-$EXECUTE_DIR/markitdown_docx2md.sh}"
-PPTX2MD_SCRIPT="${PPTX2MD_SCRIPT:-$EXECUTE_DIR/pptx2md.py}"
-XLS2XLSX_SCRIPT="${XLS2XLSX_SCRIPT:-$SCRIPT_DIR/xls2xlsx.sh}"
-XLSX2CSV_SCRIPT="${XLSX2CSV_SCRIPT:-$EXECUTE_DIR/xlsx2csv.py}"
+readonly DOC2DOCX_SCRIPT="${DOC2DOCX_SCRIPT:-$SCRIPTS_DIR/doc2docx.sh}"
+readonly DOCX2MD_SCRIPT="${DOCX2MD_SCRIPT:-$EXECUTE_DIR/markitdown_docx2md.sh}"
+readonly PPTX2MD_SCRIPT="${PPTX2MD_SCRIPT:-$EXECUTE_DIR/pptx2md.py}"
+readonly XLS2XLSX_SCRIPT="${XLS2XLSX_SCRIPT:-$SCRIPTS_DIR/xls2xlsx.sh}"
+readonly XLSX2CSV_SCRIPT="${XLSX2CSV_SCRIPT:-$EXECUTE_DIR/xlsx2csv.py}"
 
 # 定义输出目录
-OUTPUT_DIR="${OUTPUT_DIR:-./converted}"
-MD_OUTPUT_DIR="$OUTPUT_DIR/md"
-CSV_OUTPUT_DIR="$OUTPUT_DIR/csv"
+readonly OUTPUT_DIR="${OUTPUT_DIR:-./converted}"
+readonly MD_OUTPUT_DIR="$OUTPUT_DIR/md"
+readonly CSV_OUTPUT_DIR="$OUTPUT_DIR/csv"
 
-# 创建输出目录
-mkdir -p "$MD_OUTPUT_DIR" "$CSV_OUTPUT_DIR"
+# 转换统计
+CONVERT_COUNT_DOC_TO_DOCX=0
+CONVERT_COUNT_XLS_TO_XLSX=0
+CONVERT_COUNT_DOCX_TO_MD=0
+CONVERT_COUNT_XLSX_TO_CSV=0
+CONVERT_COUNT_PPTX_TO_MD=0
+
+# 显示版本信息
+show_version() {
+    echo "脚本版本: $SCRIPT_VERSION"
+    echo "作者: $SCRIPT_AUTHOR"
+    echo "更新日期: $SCRIPT_UPDATED"
+}
 
 # 显示使用帮助
 show_help() {
@@ -47,6 +55,7 @@ show_help() {
     -r, --recursive 递归处理子目录
     -v, --verbose   显示详细输出
     -h, --help      显示此帮助信息
+    --version       显示版本信息
 
 单独转换选项:
     --doc-only     仅转换 doc 到 docx
@@ -65,330 +74,245 @@ EOF
     exit 0
 }
 
-# 打印带颜色的消息
-print_info() {
-    echo -e "${BLUE}[信息]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[成功]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[错误]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[警告]${NC} $1"
-}
-
 # 检查必要的工具和脚本
 check_dependencies() {
     local missing_deps=0
     
-    print_info "检查依赖项..."
+    show_info "检查依赖项..."
     
     # 检查 Python
-    if ! command -v python3 &> /dev/null; then
-        print_error "未找到 python3"
+    if ! check_python_env; then
         missing_deps=1
     fi
     
     # 检查 markitdown
-    if ! command -v markitdown &> /dev/null; then
-        print_warning "未找到 markitdown，请先安装：pip install markitdown"
+    if ! check_command_exists markitdown; then
+        show_warning "未找到 markitdown，请先安装：pip install markitdown"
         missing_deps=1
     fi
     
     # 检查各个转换脚本
-    if [ ! -f "$DOC2DOCX_SCRIPT" ]; then
-        print_warning "未找到脚本: $DOC2DOCX_SCRIPT"
-        missing_deps=1
-    else
-        chmod +x "$DOC2DOCX_SCRIPT"
-    fi
-    
-    if [ ! -f "$DOCX2MD_SCRIPT" ]; then
-        print_warning "未找到脚本: $DOCX2MD_SCRIPT"
-        missing_deps=1
-    else
-        chmod +x "$DOCX2MD_SCRIPT"
-    fi
+    local scripts=("$DOC2DOCX_SCRIPT" "$DOCX2MD_SCRIPT" "$XLS2XLSX_SCRIPT")
+    for script in "${scripts[@]}"; do
+        if [ ! -f "$script" ]; then
+            show_warning "未找到脚本: $script"
+            missing_deps=1
+        else
+            chmod +x "$script"
+        fi
+    done
     
     if [ ! -f "$PPTX2MD_SCRIPT" ]; then
-        print_warning "未找到脚本: $PPTX2MD_SCRIPT"
-        missing_deps=1
-    fi
-    
-    if [ ! -f "$XLS2XLSX_SCRIPT" ]; then
-        print_warning "未找到脚本: $XLS2XLSX_SCRIPT"
-        missing_deps=1
-    else
-        chmod +x "$XLS2XLSX_SCRIPT"
-    fi
-    
-    if [ ! -f "$XLSX2CSV_SCRIPT" ]; then
-        print_warning "未找到脚本: $XLSX2CSV_SCRIPT"
+        show_warning "未找到脚本: $PPTX2MD_SCRIPT"
         missing_deps=1
     fi
     
     # 检查 Microsoft Office 应用
-    if ! osascript -e 'tell application "Microsoft Word" to name' &> /dev/null; then
-        print_warning "未找到 Microsoft Word，doc 转换功能将不可用"
+    if ! run_applescript 'tell application "Microsoft Word" to name' &> /dev/null; then
+        show_warning "未找到 Microsoft Word，doc 转换功能将不可用"
     fi
     
-    if ! osascript -e 'tell application "Microsoft Excel" to name' &> /dev/null; then
-        print_warning "未找到 Microsoft Excel，xls 转换功能将不可用"
+    if ! run_applescript 'tell application "Microsoft Excel" to name' &> /dev/null; then
+        show_warning "未找到 Microsoft Excel，xls 转换功能将不可用"
     fi
     
     if [ $missing_deps -eq 1 ]; then
-        print_error "缺少必要的依赖项，请先解决上述问题"
-        exit 1
+        fatal_error "缺少必要的依赖项，请先解决上述问题"
     fi
     
-    print_success "依赖检查完成"
+    show_success "依赖检查完成"
+}
+
+# 处理单个文件转换
+# 参数: $1 = 文件路径, $2 = 转换类型, $3 = 输出目录
+process_single_file() {
+    local file="$1"
+    local convert_type="$2"
+    local output_dir="$3"
+    
+    # 验证输入文件
+    validate_input_file "$file" || return 1
+    
+    local base_name=$(get_file_basename "$file")
+    local file_ext=$(get_file_extension "$file")
+    
+    case "$convert_type" in
+        "docx2md")
+            if check_file_extension "$file" "docx"; then
+                ensure_directory "$output_dir" || return 1
+                if retry_command "$DOCX2MD_SCRIPT" "$file" "$output_dir"; then
+                    show_success "已转换: $(basename "$file") -> $base_name.md"
+                    ((CONVERT_COUNT_DOCX_TO_MD++))
+                    return 0
+                fi
+            fi
+            ;;
+        "xlsx2csv")
+            if check_file_extension "$file" "xlsx"; then
+                ensure_directory "$output_dir" || return 1
+                if [ "$XLSX_CSV_SINGLE_SHEET" = true ]; then
+                    if retry_command "$PYTHON_PATH" "$XLSX2CSV_SCRIPT" -d -o "$output_dir/$base_name.csv" "$file"; then
+                        show_success "已转换: $(basename "$file") [默认工作表] -> $base_name.csv"
+                        ((CONVERT_COUNT_XLSX_TO_CSV++))
+                        return 0
+                    fi
+                else
+                    local file_dir=$(dirname "$file")
+                    safe_cd "$file_dir" || return 1
+                    
+                    # 清理可能存在的同名CSV文件
+                    rm -f "${base_name}"_*.csv 2>/dev/null
+                    
+                    if retry_command "$PYTHON_PATH" "$XLSX2CSV_SCRIPT" "$file"; then
+                        # 移动生成的CSV文件
+                        local found_csv=false
+                        for csv_file in "${base_name}"_*.csv; do
+                            if [ -f "$csv_file" ]; then
+                                found_csv=true
+                                mv "$csv_file" "$output_dir/" && show_success "已移动: $(basename "$csv_file") 到 $output_dir/"
+                                ((CONVERT_COUNT_XLSX_TO_CSV++))
+                            fi
+                        done
+                        
+                        if [ "$found_csv" = false ]; then
+                            recoverable_error "转换失败: $file"
+                            return 1
+                        fi
+                        return 0
+                    fi
+                fi
+            fi
+            ;;
+        "pptx2md")
+            if check_file_extension "$file" "pptx"; then
+                local file_dir=$(dirname "$file")
+                safe_cd "$file_dir" || return 1
+                
+                if [ "$VERBOSE" = true ]; then
+                    retry_command "$PYTHON_PATH" "$PPTX2MD_SCRIPT" "$file" -v
+                else
+                    retry_command "$PYTHON_PATH" "$PPTX2MD_SCRIPT" "$file"
+                fi
+                
+                ((CONVERT_COUNT_PPTX_TO_MD++))
+                
+                # 检查是否生成了同名文件夹
+                if [ -d "$base_name" ]; then
+                    ensure_directory "$output_dir" || return 1
+                    [ -d "$output_dir/$base_name" ] && rm -rf "$output_dir/$base_name"
+                    mv "$base_name" "$output_dir/"
+                    show_success "已移动文件夹: $base_name 到 $output_dir/"
+                    return 0
+                else
+                    recoverable_error "未找到生成的文件夹: $base_name"
+                    return 1
+                fi
+            fi
+            ;;
+    esac
+    
+    return 1
 }
 
 # 转换 doc 文件
 convert_doc_files() {
-    print_info "开始处理 Word 文档..."
+    show_info "开始处理 Word 文档..."
     
     # 第一步：doc -> docx
     if [ "$DOC_ONLY" = true ] || [ "$DOC_ONLY" != true ] && [ "$DOCX_ONLY" != true ]; then
-        print_info "转换 .doc 到 .docx ..."
+        show_processing "转换 .doc 到 .docx ..."
         if [ "$RECURSIVE" = true ]; then
-            "$DOC2DOCX_SCRIPT" -r
-            # 根据转换数量估计计数
-            found_count=$(find . -name "*.doc" -not -name "*.docx" -type f 2>/dev/null | wc -l)
+            retry_command "$DOC2DOCX_SCRIPT" -r
+            local found_count=$(find . -name "*.doc" -not -name "*.docx" -type f 2>/dev/null | wc -l)
             CONVERT_COUNT_DOC_TO_DOCX=$((CONVERT_COUNT_DOC_TO_DOCX + found_count))
         else
-            "$DOC2DOCX_SCRIPT"
-            # 根据转换数量估计计数
-            found_count=$(ls -1 *.doc 2>/dev/null | grep -v "\.docx$" | wc -l)
+            retry_command "$DOC2DOCX_SCRIPT"
+            local found_count=$(ls -1 *.doc 2>/dev/null | grep -v "\.docx$" | wc -l)
             CONVERT_COUNT_DOC_TO_DOCX=$((CONVERT_COUNT_DOC_TO_DOCX + found_count))
         fi
     fi
     
     # 第二步：docx -> md
     if [ "$DOCX_ONLY" = true ] || [ "$DOC_ONLY" != true ] && [ "$DOCX_ONLY" != true ]; then
-        print_info "转换 .docx 到 .md ..."
-        # 递归处理所有docx文件
+        show_processing "转换 .docx 到 .md ..."
+        
         if [ "$RECURSIVE" = true ]; then
             find . -name "*.docx" -type f | while read -r file; do
-                print_info "  处理: $file"
-                # 调用脚本并指定输出目录
-                "$DOCX2MD_SCRIPT" "$file" "$MD_OUTPUT_DIR"
-                output_file="$MD_OUTPUT_DIR/$(basename "${file%.*}").md"
-                print_success "  已生成: $output_file"
-                # 增加转换计数
-                ((CONVERT_COUNT_DOCX_TO_MD++))
+                show_progress "$(basename "$file")"
+                process_single_file "$file" "docx2md" "$MD_OUTPUT_DIR"
             done
         else
             for file in *.docx; do
                 if [ -f "$file" ]; then
-                    print_info "  处理: $file"
-                    # 调用脚本并指定输出目录
-                    "$DOCX2MD_SCRIPT" "$file" "$MD_OUTPUT_DIR"
-                    output_file="$MD_OUTPUT_DIR/$(basename "${file%.*}").md"
-                    print_success "  已生成: $output_file"
-                    # 增加转换计数
-                    ((CONVERT_COUNT_DOCX_TO_MD++))
+                    show_progress "$(basename "$file")"
+                    process_single_file "$file" "docx2md" "$MD_OUTPUT_DIR"
                 fi
             done
         fi
     fi
     
-    print_success "Word 文档处理完成"
+    show_success "Word 文档处理完成"
 }
 
 # 转换 Excel 文件
 convert_excel_files() {
-    print_info "开始处理 Excel 文档..."
+    show_info "开始处理 Excel 文档..."
     
     # 第一步：xls -> xlsx
     if [ "$XLS_ONLY" = true ] || [ "$XLS_ONLY" != true ] && [ "$XLSX_ONLY" != true ]; then
-        print_info "转换 .xls 到 .xlsx ..."
+        show_processing "转换 .xls 到 .xlsx ..."
         if [ "$RECURSIVE" = true ]; then
-            "$XLS2XLSX_SCRIPT" -r
-            # 根据转换数量估计计数
-            found_count=$(find . -name "*.xls" -not -name "*.xlsx" -type f 2>/dev/null | wc -l)
+            retry_command "$XLS2XLSX_SCRIPT" -r
+            local found_count=$(find . -name "*.xls" -not -name "*.xlsx" -type f 2>/dev/null | wc -l)
             CONVERT_COUNT_XLS_TO_XLSX=$((CONVERT_COUNT_XLS_TO_XLSX + found_count))
         else
-            "$XLS2XLSX_SCRIPT"
-            # 根据转换数量估计计数
-            found_count=$(ls -1 *.xls 2>/dev/null | grep -v "\.xlsx$" | wc -l)
+            retry_command "$XLS2XLSX_SCRIPT"
+            local found_count=$(ls -1 *.xls 2>/dev/null | grep -v "\.xlsx$" | wc -l)
             CONVERT_COUNT_XLS_TO_XLSX=$((CONVERT_COUNT_XLS_TO_XLSX + found_count))
         fi
     fi
     
     # 第二步：xlsx -> csv
     if [ "$XLSX_ONLY" = true ] || [ "$XLS_ONLY" != true ] && [ "$XLSX_ONLY" != true ]; then
-        print_info "转换 .xlsx 到 .csv ..."
-        # 找出所有xlsx文件并转换
+        show_processing "转换 .xlsx 到 .csv ..."
+        
         if [ "$RECURSIVE" = true ]; then
             find . -name "*.xlsx" -type f | while read -r file; do
-                print_info "  处理: $file"
-                base_name=$(basename "${file%.*}")
-                
-                # 使用-d参数只处理默认工作表，输出到指定路径
-                if [ -n "$XLSX_CSV_SINGLE_SHEET" ] && [ "$XLSX_CSV_SINGLE_SHEET" = true ]; then
-                    if python3 "$XLSX2CSV_SCRIPT" -d -o "$CSV_OUTPUT_DIR/$base_name.csv" "$file"; then
-                        print_success "  转换完成：$file [默认工作表] -> $CSV_OUTPUT_DIR/$base_name.csv"
-                        # 增加转换计数
-                        ((CONVERT_COUNT_XLSX_TO_CSV++))
-                    else
-                        print_warning "  转换失败: $file [默认工作表]"
-                    fi
-                else
-                    # 默认处理所有工作表
-                    # 先删除可能存在的同名CSV文件
-                    rm -f "${file%.*}"_*.csv 2>/dev/null
-                    
-                    # 转换所有工作表（现在已是默认行为）
-                    python3 "$XLSX2CSV_SCRIPT" "$file"
-                    
-                    # 移动所有生成的CSV文件
-                    found_csv=false
-                    for csv_file in "${file%.*}"_*.csv; do
-                        if [ -f "$csv_file" ]; then
-                            found_csv=true
-                            # 确保目标目录存在
-                            mkdir -p "$CSV_OUTPUT_DIR"
-                            # 移动文件
-                            mv "$csv_file" "$CSV_OUTPUT_DIR/"
-                            print_success "  已移动: $(basename "$csv_file") 到 $CSV_OUTPUT_DIR/"
-                            # 增加转换计数
-                            ((CONVERT_COUNT_XLSX_TO_CSV++))
-                        fi
-                    done
-                    
-                    # 如果没有找到csv文件，可能是转换失败
-                    if [ "$found_csv" = false ]; then
-                        print_warning "  转换失败: $file"
-                    fi
-                fi
+                show_progress "$(basename "$file")"
+                process_single_file "$file" "xlsx2csv" "$CSV_OUTPUT_DIR"
             done
         else
             for file in *.xlsx; do
                 if [ -f "$file" ]; then
-                    print_info "  处理: $file"
-                    base_name=$(basename "${file%.*}")
-                    
-                    # 使用-d参数只处理默认工作表，输出到指定路径
-                    if [ -n "$XLSX_CSV_SINGLE_SHEET" ] && [ "$XLSX_CSV_SINGLE_SHEET" = true ]; then
-                        if python3 "$XLSX2CSV_SCRIPT" -d -o "$CSV_OUTPUT_DIR/$base_name.csv" "$file"; then
-                            print_success "  转换完成：$file [默认工作表] -> $CSV_OUTPUT_DIR/$base_name.csv"
-                            # 增加转换计数
-                            ((CONVERT_COUNT_XLSX_TO_CSV++))
-                        else
-                            print_warning "  转换失败: $file [默认工作表]"
-                        fi
-                    else
-                        # 默认处理所有工作表
-                        # 先删除可能存在的同名CSV文件
-                        rm -f "${file%.*}"_*.csv 2>/dev/null
-                        
-                        # 转换所有工作表（现在已是默认行为）
-                        python3 "$XLSX2CSV_SCRIPT" "$file"
-                        
-                        # 移动所有生成的CSV文件
-                        found_csv=false
-                        for csv_file in "${file%.*}"_*.csv; do
-                            if [ -f "$csv_file" ]; then
-                                found_csv=true
-                                # 确保目标目录存在
-                                mkdir -p "$CSV_OUTPUT_DIR"
-                                # 移动文件
-                                mv "$csv_file" "$CSV_OUTPUT_DIR/"
-                                print_success "  已移动: $(basename "$csv_file") 到 $CSV_OUTPUT_DIR/"
-                                # 增加转换计数
-                                ((CONVERT_COUNT_XLSX_TO_CSV++))
-                            fi
-                        done
-                        
-                        # 如果没有找到csv文件，可能是转换失败
-                        if [ "$found_csv" = false ]; then
-                            print_warning "  转换失败: $file"
-                        fi
-                    fi
+                    show_progress "$(basename "$file")"
+                    process_single_file "$file" "xlsx2csv" "$CSV_OUTPUT_DIR"
                 fi
             done
         fi
     fi
     
-    print_success "Excel 文档处理完成"
+    show_success "Excel 文档处理完成"
 }
 
 # 转换 PowerPoint 文件
 convert_ppt_files() {
-    print_info "开始处理 PowerPoint 文档..."
+    show_info "开始处理 PowerPoint 文档..."
     
-    # 查找所有 pptx 文件
     if [ "$RECURSIVE" = true ]; then
         find . -name "*.pptx" -type f | while read -r file; do
-            print_info "转换: $file"
-            base_name=$(basename "${file%.*}")
-            file_dir=$(dirname "$file")
-            
-            # 先用pptx2md脚本转换文件
-            if [ "$VERBOSE" = true ]; then
-                python3 "$PPTX2MD_SCRIPT" "$file" -v
-            else
-                python3 "$PPTX2MD_SCRIPT" "$file"
-            fi
-            
-            # 增加转换计数
-            ((CONVERT_COUNT_PPTX_TO_MD++))
-            
-            # 检查是否生成了同名文件夹
-            gen_folder="$file_dir/$base_name"
-            if [ -d "$gen_folder" ]; then
-                # 移动生成的文件夹到目标位置
-                mkdir -p "$MD_OUTPUT_DIR"
-                if [ -d "$MD_OUTPUT_DIR/$base_name" ]; then
-                    # 如果目标位置已存在同名文件夹，先删除
-                    rm -rf "$MD_OUTPUT_DIR/$base_name"
-                fi
-                mv "$gen_folder" "$MD_OUTPUT_DIR/"
-                print_success "  已移动文件夹: $base_name 到 $MD_OUTPUT_DIR/"
-            else
-                print_warning "  未找到生成的文件夹: $gen_folder"
-            fi
+            show_progress "$(basename "$file")"
+            process_single_file "$file" "pptx2md" "$MD_OUTPUT_DIR"
         done
     else
         for file in *.pptx; do
             if [ -f "$file" ]; then
-                print_info "转换: $file"
-                base_name=$(basename "${file%.*}")
-                
-                # 先用pptx2md脚本转换文件
-                if [ "$VERBOSE" = true ]; then
-                    python3 "$PPTX2MD_SCRIPT" "$file" -v
-                else
-                    python3 "$PPTX2MD_SCRIPT" "$file"
-                fi
-                
-                # 增加转换计数
-                ((CONVERT_COUNT_PPTX_TO_MD++))
-                
-                # 检查是否生成了同名文件夹
-                if [ -d "$base_name" ]; then
-                    # 移动生成的文件夹到目标位置
-                    mkdir -p "$MD_OUTPUT_DIR"
-                    if [ -d "$MD_OUTPUT_DIR/$base_name" ]; then
-                        # 如果目标位置已存在同名文件夹，先删除
-                        rm -rf "$MD_OUTPUT_DIR/$base_name"
-                    fi
-                    mv "$base_name" "$MD_OUTPUT_DIR/"
-                    print_success "  已移动文件夹: $base_name 到 $MD_OUTPUT_DIR/"
-                else
-                    print_warning "  未找到生成的文件夹: $base_name"
-                fi
+                show_progress "$(basename "$file")"
+                process_single_file "$file" "pptx2md" "$MD_OUTPUT_DIR"
             fi
         done
     fi
     
-    print_success "PowerPoint 文档处理完成"
+    show_success "PowerPoint 文档处理完成"
 }
 
 # 统计文件数量
@@ -424,13 +348,6 @@ count_files() {
     echo ""
 }
 
-# 转换统计
-CONVERT_COUNT_DOC_TO_DOCX=0
-CONVERT_COUNT_XLS_TO_XLSX=0
-CONVERT_COUNT_DOCX_TO_MD=0
-CONVERT_COUNT_XLSX_TO_CSV=0
-CONVERT_COUNT_PPTX_TO_MD=0
-
 # 显示转换统计
 show_conversion_stats() {
     echo -e "\n${BLUE}转换统计:${NC}"
@@ -439,7 +356,6 @@ show_conversion_stats() {
     echo "  docx -> md:  $CONVERT_COUNT_DOCX_TO_MD"
     echo "  xlsx -> csv: $CONVERT_COUNT_XLSX_TO_CSV"
     echo "  pptx -> md:  $CONVERT_COUNT_PPTX_TO_MD"
-    # 计算md和csv转换总数
     local total_md_csv=$((CONVERT_COUNT_DOCX_TO_MD + CONVERT_COUNT_XLSX_TO_CSV + CONVERT_COUNT_PPTX_TO_MD))
     echo "  converted md and csv: $total_md_csv"
     echo ""
@@ -511,11 +427,15 @@ main() {
                 XLSX_CSV_SINGLE_SHEET=true
                 shift
                 ;;
+            --version)
+                show_version
+                exit 0
+                ;;
             -h|--help)
                 show_help
                 ;;
             *)
-                print_error "未知选项: $1"
+                show_error "未知选项: $1"
                 show_help
                 ;;
         esac
@@ -523,9 +443,14 @@ main() {
     
     # 如果没有指定任何转换选项，显示帮助
     if [ "$CONVERT_DOC" = false ] && [ "$CONVERT_EXCEL" = false ] && [ "$CONVERT_PPT" = false ] && [ "$CONVERT_ALL" = false ]; then
-        print_warning "未指定任何转换选项"
+        show_warning "未指定任何转换选项"
         show_help
     fi
+    
+    # 创建输出目录
+    ensure_directory "$OUTPUT_DIR" || fatal_error "无法创建输出目录"
+    ensure_directory "$MD_OUTPUT_DIR" || fatal_error "无法创建MD输出目录"
+    ensure_directory "$CSV_OUTPUT_DIR" || fatal_error "无法创建CSV输出目录"
     
     # 检查依赖
     check_dependencies
@@ -541,7 +466,7 @@ main() {
     fi
     
     # 记录开始时间
-    start_time=$(date +%s)
+    local start_time=$(date +%s)
     
     # 执行转换
     if [ "$CONVERT_DOC" = true ]; then
@@ -557,8 +482,8 @@ main() {
     fi
     
     # 计算耗时
-    end_time=$(date +%s)
-    duration=$((end_time - start_time))
+    local end_time=$(date +%s)
+    local duration=$((end_time - start_time))
     
     echo -e "\n${GREEN}=== 转换完成 ===${NC}"
     echo "总耗时: ${duration} 秒"
@@ -570,6 +495,14 @@ main() {
     
     show_conversion_stats
 }
+
+# 设置清理陷阱
+cleanup() {
+    local exit_code=$?
+    # 清理临时文件等
+    exit $exit_code
+}
+trap cleanup EXIT
 
 # 运行主程序
 main "$@"

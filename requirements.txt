@@ -1,0 +1,51 @@
+# Useful Scripts Collection - Python Dependencies
+# 用于文档转换、文件处理和系统自动化的实用脚本集合
+
+# 数据处理核心库
+pandas>=1.5.0,<3.0.0
+openpyxl>=3.0.0,<4.0.0
+
+# Office 文档处理
+python-docx>=0.8.11,<2.0.0
+python-pptx>=0.6.21,<1.0.0
+
+# 文档转换工具
+markitdown>=0.1.0
+tiktoken>=0.5.0,<1.0.0
+
+# 文件监控和处理
+watchdog>=3.0.0,<4.0.0
+
+# 字符编码检测 (用于处理CSV文件)
+chardet>=5.0.0,<6.0.0
+
+# 系统进程监控 (可选，用于调试)
+psutil>=5.9.0,<6.0.0
+
+# HTTP 请求库 (用于某些集成功能)
+requests>=2.28.0,<3.0.0
+
+# 安全扫描工具 (开发依赖)
+# bandit>=1.7.0
+# safety>=3.0.0
+
+# 注释：
+# - pandas: 用于 CSV/Excel 数据处理
+# - openpyxl: 用于 Excel 文件读写
+# - python-docx: 用于 Word 文档处理
+# - python-pptx: 用于 PowerPoint 文档处理
+# - markitdown: 用于文档转换为 Markdown
+# - tiktoken: 用于计算文本的 token 数量
+# - watchdog: 用于文件系统监控
+# - chardet: 用于自动检测文件编码
+# - psutil: 用于系统监控和调试
+# - requests: 用于网络请求和API调用
+
+# 使用方法：
+# pip install -r requirements.txt
+#
+# 或者使用 conda：
+# conda install --file requirements.txt
+#
+# 或者分别安装：
+# pip install pandas openpyxl python-docx python-pptx markitdown tiktoken watchdog chardet psutil requests 
