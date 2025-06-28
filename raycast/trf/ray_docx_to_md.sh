@@ -11,7 +11,7 @@
 source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
 # 检查原始转换脚本是否存在
-CONVERT_SCRIPT="$SCRIPTS_DIR/execute/convert_docx_to_md.sh"
+CONVERT_SCRIPT="$CONVERT_DOCX_TO_MD"
 if [ ! -f "$CONVERT_SCRIPT" ]; then
     show_error "找不到原始脚本: $CONVERT_SCRIPT"
     exit 1

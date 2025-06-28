@@ -33,7 +33,7 @@ safe_cd "$FILE_DIR" || exit 1
 show_processing "正在将 $(basename "$SELECTED_FILE") 转换为 CSV 格式..."
 
 # 执行Python脚本
-if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/convert_txt_to_csv.py" "$SELECTED_FILE"; then
+if "$PYTHON_PATH" "$CONVERT_TXT_TO_CSV" "$SELECTED_FILE"; then
     show_success "已将 $(basename "$SELECTED_FILE") 转换为 CSV 格式，保存在 $(basename "$FILE_DIR")"
 else
     show_error "转换失败"

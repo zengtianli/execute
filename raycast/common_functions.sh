@@ -4,6 +4,46 @@
 readonly PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
 readonly MINIFORGE_BIN="/Users/tianli/miniforge3/bin"
 readonly SCRIPTS_DIR="/Users/tianli/useful_scripts"
+readonly EXECUTE_SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts"
+readonly EXECUTE_DIR="/Users/tianli/useful_scripts/execute"
+
+# ===== Scripts 脚本路径定义 =====
+# 文件转换脚本
+readonly CONVERT_CSV_TO_TXT="$EXECUTE_SCRIPTS_DIR/convert_csv_to_txt.py"
+readonly CONVERT_CSV_TO_XLSX="$EXECUTE_SCRIPTS_DIR/convert_csv_to_xlsx.py" 
+readonly CONVERT_TXT_TO_CSV="$EXECUTE_SCRIPTS_DIR/convert_txt_to_csv.py"
+readonly CONVERT_TXT_TO_XLSX="$EXECUTE_SCRIPTS_DIR/convert_txt_to_xlsx.py"
+readonly CONVERT_XLSX_TO_CSV="$EXECUTE_SCRIPTS_DIR/convert_xlsx_to_csv.py"
+readonly CONVERT_XLSX_TO_TXT="$EXECUTE_SCRIPTS_DIR/convert_xlsx_to_txt.py"
+readonly CONVERT_DOCX_TO_MD="$EXECUTE_SCRIPTS_DIR/convert_docx_to_md.sh"
+readonly CONVERT_DOC_TO_TEXT="$EXECUTE_SCRIPTS_DIR/convert_doc_to_text.sh"
+readonly CONVERT_PPTX_TO_MD="$EXECUTE_SCRIPTS_DIR/convert_pptx_to_md.py"
+readonly CONVERT_WMF_TO_PNG="$EXECUTE_SCRIPTS_DIR/convert_wmf_to_png.py"
+readonly CONVERT_OFFICE_BATCH="$EXECUTE_SCRIPTS_DIR/convert_office_batch.sh"
+
+# 内容提取脚本
+readonly EXTRACT_IMAGES_OFFICE="$EXECUTE_SCRIPTS_DIR/extract_images_office.py"
+readonly EXTRACT_TABLES_OFFICE="$EXECUTE_SCRIPTS_DIR/extract_tables_office.py"
+readonly EXTRACT_MARKDOWN_FILES="$EXECUTE_SCRIPTS_DIR/extract_markdown_files.sh"
+readonly EXTRACT_TEXT_TOKENS="$EXECUTE_SCRIPTS_DIR/extract_text_tokens.py"
+
+# 文件操作脚本
+readonly FILE_MOVE_UP_LEVEL="$EXECUTE_SCRIPTS_DIR/file_move_up_level.sh"
+readonly LINK_CREATE_ALIASES="$EXECUTE_SCRIPTS_DIR/link_create_aliases.sh"
+readonly LINK_BIND_FILES="$EXECUTE_SCRIPTS_DIR/link_bind_files.py"
+readonly LINK_IMAGES_CENTRAL="$EXECUTE_SCRIPTS_DIR/link_images_central.sh"
+
+# 合并工具脚本
+readonly MERGE_CSV_FILES="$EXECUTE_SCRIPTS_DIR/merge_csv_files.sh"
+readonly MERGE_MARKDOWN_FILES="$EXECUTE_SCRIPTS_DIR/merge_markdown_files.sh"
+
+# 管理工具脚本
+readonly MANAGE_APP_LAUNCHER="$EXECUTE_SCRIPTS_DIR/manage_app_launcher.sh"
+readonly MANAGE_PIP_PACKAGES="$EXECUTE_SCRIPTS_DIR/manage_pip_packages.sh"
+readonly LIST_APPLICATIONS="$EXECUTE_SCRIPTS_DIR/list_applications.sh"
+
+# 其他工具脚本
+readonly SPLITSHEETS="$EXECUTE_SCRIPTS_DIR/splitsheets.py"
 
 # ===== 通用函数 =====
 
