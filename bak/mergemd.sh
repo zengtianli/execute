@@ -1,1 +1,0 @@
-merge_markdown_files.sh

@@ -11,7 +11,7 @@ readonly PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
 readonly MINIFORGE_BIN="/Users/tianli/miniforge3/bin"
 
 # 目录路径配置
-readonly SCRIPTS_DIR="/Users/tianli/useful_scripts"
+readonly SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts"
 readonly EXECUTE_DIR="/Users/tianli/useful_scripts/execute"
 
 # ===== 颜色定义 =====

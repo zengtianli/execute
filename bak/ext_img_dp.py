@@ -1,1 +1,0 @@
-extract_images_office.py

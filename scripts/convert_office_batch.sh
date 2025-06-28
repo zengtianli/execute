@@ -16,10 +16,10 @@ readonly SCRIPT_UPDATED="2024-01-01"
 
 # 定义各脚本的路径
 readonly DOC2DOCX_SCRIPT="${DOC2DOCX_SCRIPT:-$SCRIPTS_DIR/doc2docx.sh}"
-readonly DOCX2MD_SCRIPT="${DOCX2MD_SCRIPT:-$EXECUTE_DIR/convert_docx_to_md.sh}"
-readonly PPTX2MD_SCRIPT="${PPTX2MD_SCRIPT:-$EXECUTE_DIR/convert_pptx_to_md.py}"
+readonly DOCX2MD_SCRIPT="${DOCX2MD_SCRIPT:-$SCRIPTS_DIR/convert_docx_to_md.sh}"
+readonly PPTX2MD_SCRIPT="${PPTX2MD_SCRIPT:-$SCRIPTS_DIR/convert_pptx_to_md.py}"
 readonly XLS2XLSX_SCRIPT="${XLS2XLSX_SCRIPT:-$SCRIPTS_DIR/xls2xlsx.sh}"
-readonly XLSX2CSV_SCRIPT="${XLSX2CSV_SCRIPT:-$EXECUTE_DIR/xlsx2csv.py}"
+readonly XLSX2CSV_SCRIPT="${XLSX2CSV_SCRIPT:-$SCRIPTS_DIR/convert_xlsx_to_csv.py}"
 
 # 定义输出目录
 readonly OUTPUT_DIR="${OUTPUT_DIR:-./converted}"

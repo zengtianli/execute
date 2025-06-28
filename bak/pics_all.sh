@@ -1,1 +1,0 @@
-link_images_central.sh

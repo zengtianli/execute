@@ -21,7 +21,7 @@ PYTHON_PATH = "/Users/tianli/miniforge3/bin/python3"
 MINIFORGE_BIN = "/Users/tianli/miniforge3/bin"
 
 # 目录路径配置
-SCRIPTS_DIR = "/Users/tianli/useful_scripts"
+SCRIPTS_DIR = "/Users/tianli/useful_scripts/execute/scripts"
 EXECUTE_DIR = "/Users/tianli/useful_scripts/execute"
 
 # ===== 核心显示函数 =====
