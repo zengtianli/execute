@@ -31,8 +31,8 @@ FILE_DIR=$(dirname "$SELECTED_FILE")
 # 切换到文件目录
 safe_cd "$FILE_DIR" || exit 1
 
-# 运行splitsheets.py脚本
-if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/splitsheets.py" "$SELECTED_FILE"; then
+# 运行splitsheets.py脚本（使用预定义变量）
+if "$PYTHON_PATH" "$SPLITSHEETS" "$SELECTED_FILE"; then
     show_success "Excel工作表拆分完成: $(basename "$SELECTED_FILE")"
 else
     show_error "Excel工作表拆分失败"

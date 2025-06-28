@@ -10,8 +10,8 @@
 # 引入通用函数库
 source "/Users/tianli/useful_scripts/execute/raycast/common_functions.sh"
 
-# 调用manage_app_launcher.sh脚本
-SCRIPT_PATH="$SCRIPTS_DIR/execute/manage_app_launcher.sh"
+# 使用预定义的脚本路径变量
+SCRIPT_PATH="$MANAGE_APP_LAUNCHER"
 
 # 检查脚本是否存在
 if [ ! -f "$SCRIPT_PATH" ]; then

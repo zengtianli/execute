@@ -4,7 +4,7 @@
 readonly PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
 readonly MINIFORGE_BIN="/Users/tianli/miniforge3/bin"
 readonly SCRIPTS_DIR="/Users/tianli/useful_scripts"
-readonly EXECUTE_SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts"
+readonly EXECUTE_SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts_ray"
 readonly EXECUTE_DIR="/Users/tianli/useful_scripts/execute"
 
 # ===== Scripts 脚本路径定义 =====
@@ -44,6 +44,10 @@ readonly LIST_APPLICATIONS="$EXECUTE_SCRIPTS_DIR/list_applications.sh"
 
 # 其他工具脚本
 readonly SPLITSHEETS="$EXECUTE_SCRIPTS_DIR/splitsheets.py"
+
+# 比较工具脚本 (2个)
+readonly COMPARE_FILES_FOLDERS="$EXECUTE_DIR/compare/compare_files_folders.py"
+readonly COMPARE_EXCEL_DATA="$EXECUTE_DIR/compare/compare_excel_data.py"
 
 # ===== 通用函数 =====
 

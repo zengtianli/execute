@@ -38,8 +38,8 @@ done
 
 show_processing "正在比较Excel文件数据..."
 
-# 运行Python脚本
-if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/compare/compare_excel_data.py" "${FILES_ARRAY[0]}" "${FILES_ARRAY[1]}"; then
+# 运行Python脚本（使用预定义变量）
+if "$PYTHON_PATH" "$COMPARE_EXCEL_DATA" "${FILES_ARRAY[0]}" "${FILES_ARRAY[1]}"; then
     show_success "Excel数据比较完成"
     echo "✓ 文件1: $(basename "${FILES_ARRAY[0]}")"
     echo "✓ 文件2: $(basename "${FILES_ARRAY[1]}")"

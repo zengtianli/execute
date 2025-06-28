@@ -62,8 +62,8 @@ fi
 
 echo ""
 
-# 运行Python脚本
-if "$PYTHON_PATH" "$SCRIPTS_DIR/execute/compare/compare_files_folders.py" "$ITEM1" "$ITEM2"; then
+# 运行Python脚本（使用预定义变量）
+if "$PYTHON_PATH" "$COMPARE_FILES_FOLDERS" "$ITEM1" "$ITEM2"; then
     echo ""
     show_success "文件/文件夹比较完成"
 else

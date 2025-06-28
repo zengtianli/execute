@@ -13,7 +13,7 @@ useful_scripts/execute/
 │   ├── trf/                    # 文件转换 Raycast 脚本
 │   ├── yabai/                  # 窗口管理 Raycast 脚本
 │   └── [其他 Raycast 脚本]
-└── scripts/                    # 实际执行脚本（业务逻辑层）
+└── scripts_ray/                # 实际执行脚本（业务逻辑层）
     ├── common_functions.sh     # Scripts 专用通用函数库
     ├── common_utils.py         # Python 通用工具模块
     └── [各种功能脚本]
@@ -106,7 +106,7 @@ SELECTED_FILE=$(get_finder_selection_single)
 readonly PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
 readonly SCRIPTS_DIR="/Users/tianli/useful_scripts"
 readonly EXECUTE_DIR="/Users/tianli/useful_scripts/execute"
-readonly EXECUTE_SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts"
+readonly EXECUTE_SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts_ray"
 
 # 文件转换脚本变量（示例）
 readonly CONVERT_CSV_TO_TXT="$EXECUTE_SCRIPTS_DIR/convert_csv_to_txt.py"
@@ -115,10 +115,10 @@ readonly CONVERT_DOCX_TO_MD="$EXECUTE_SCRIPTS_DIR/convert_docx_to_md.sh"
 # ... 其他脚本变量
 ```
 
-在 `scripts/common_functions.sh` 中定义的关键路径：
+在 `scripts_ray/common_functions.sh` 中定义的关键路径：
 
 ```bash
-readonly SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts"
+readonly SCRIPTS_DIR="/Users/tianli/useful_scripts"
 readonly EXECUTE_DIR="/Users/tianli/useful_scripts/execute"
 ```
 
@@ -218,7 +218,7 @@ PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
 
 ### 1. 添加新的转换功能
 
-1. 在 `scripts/` 目录创建新的执行脚本
+1. 在 `scripts_ray/` 目录创建新的执行脚本
 2. 在 `raycast/common_functions.sh` 中添加新脚本的变量定义
 3. 在 `raycast/trf/` 目录创建对应的 Raycast 接口脚本（使用预定义变量）
 4. 更新本映射文档
@@ -233,8 +233,8 @@ PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
 **路径维护示例**:
 
 ```bash
-# 如果 scripts 目录迁移，只需修改一处：
-readonly EXECUTE_SCRIPTS_DIR="/new/path/to/scripts"
+# 如果 scripts_ray 目录迁移，只需修改一处：
+readonly EXECUTE_SCRIPTS_DIR="/new/path/to/scripts_ray"
 
 # 所有脚本变量自动使用新路径：
 readonly CONVERT_CSV_TO_TXT="$EXECUTE_SCRIPTS_DIR/convert_csv_to_txt.py"
@@ -277,13 +277,16 @@ readonly CONVERT_XLSX_TO_CSV="$EXECUTE_SCRIPTS_DIR/convert_xlsx_to_csv.py"
 - `$MANAGE_APP_LAUNCHER`, `$MANAGE_PIP_PACKAGES`
 - `$LIST_APPLICATIONS`, `$SPLITSHEETS`
 
+**比较工具类**:
+- `$COMPARE_FILES_FOLDERS`, `$COMPARE_EXCEL_DATA`
+
 ### 📋 完整变量定义 (基于 EXECUTE_SCRIPTS_DIR)
 
 当前在 `raycast/common_functions.sh` 中定义的所有脚本变量：
 
 ```bash
 # 基础目录
-readonly EXECUTE_SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts"
+readonly EXECUTE_SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts_ray"
 
 # 文件转换类 (11个)
 readonly CONVERT_CSV_TO_TXT="$EXECUTE_SCRIPTS_DIR/convert_csv_to_txt.py"
@@ -321,9 +324,13 @@ readonly LIST_APPLICATIONS="$EXECUTE_SCRIPTS_DIR/list_applications.sh"
 
 # 其他工具类 (1个)
 readonly SPLITSHEETS="$EXECUTE_SCRIPTS_DIR/splitsheets.py"
+
+# 比较工具类 (2个)
+readonly COMPARE_FILES_FOLDERS="$EXECUTE_DIR/compare/compare_files_folders.py"
+readonly COMPARE_EXCEL_DATA="$EXECUTE_DIR/compare/compare_excel_data.py"
 ```
 
-**统计**: 25 个脚本变量，全部基于 `EXECUTE_SCRIPTS_DIR` 基础变量构建
+**统计**: 27 个脚本变量，全部基于基础路径变量构建
 
 ## 🔍 故障排除
 
@@ -343,7 +350,7 @@ DEBUG=true raycast_script.sh
 
 # 检查路径变量层次
 echo "Python路径: $PYTHON_PATH"
-echo "Scripts目录: $EXECUTE_SCRIPTS_DIR"
+echo "Scripts_ray目录: $EXECUTE_SCRIPTS_DIR"
 echo "转换脚本: $CONVERT_CSV_TO_TXT"
 
 # 测试 Python 脚本
@@ -358,11 +365,11 @@ set | grep "CONVERT_"
 
 ### 成功完成的工作
 
-1. ✅ **文件重新组织**: 所有执行脚本已移动到 `scripts/` 目录
+1. ✅ **文件重新组织**: 所有执行脚本已移动到 `scripts_ray/` 目录
 2. ✅ **路径配置更新**: `common_functions.sh` 和 `common_utils.py` 中的路径已更新
 3. ✅ **层次化变量设计**: 引入 `EXECUTE_SCRIPTS_DIR` 基础变量，简化路径定义
 4. ✅ **Raycast脚本统一**: 所有 raycast 脚本使用预定义变量调用
-5. ✅ **映射文档创建**: 完整的调用关系映射已建立（25个脚本变量）
+5. ✅ **映射文档创建**: 完整的调用关系映射已建立（27个脚本变量）
 
 ### 调用架构
 
@@ -371,9 +378,9 @@ set | grep "CONVERT_"
     ↓
 Raycast 脚本 (raycast/trf/*.sh)
     ↓ 调用
-实际执行脚本 (scripts/*.py 或 scripts/*.sh)
+实际执行脚本 (scripts_ray/*.py 或 scripts_ray/*.sh)
     ↓ 依赖
-通用函数库 (scripts/common_functions.sh, scripts/common_utils.py)
+通用函数库 (scripts_ray/common_functions.sh, scripts_ray/common_utils.py)
 ```
 
 ### 核心功能分类统计
@@ -384,8 +391,9 @@ Raycast 脚本 (raycast/trf/*.sh)
 - **合并工具类**: 2 个脚本变量 (CSV、Markdown合并)
 - **管理工具类**: 3 个脚本变量 (应用、包管理等)
 - **其他工具类**: 1 个脚本变量 (Excel分离等)
+- **比较工具类**: 2 个脚本变量 (文件比较、数据比较等)
 
-**总计**: 25 个完整的调用映射关系
+**总计**: 27 个完整的调用映射关系
 
 ### 🏗️ 层次化变量设计
 
@@ -395,12 +403,12 @@ Raycast 脚本 (raycast/trf/*.sh)
 基础路径变量
 ├── SCRIPTS_DIR="/Users/tianli/useful_scripts"
 ├── EXECUTE_DIR="/Users/tianli/useful_scripts/execute"  
-└── EXECUTE_SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts"
+└── EXECUTE_SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts_ray"
 
 功能脚本变量 (基于 EXECUTE_SCRIPTS_DIR)
 ├── CONVERT_CSV_TO_TXT="$EXECUTE_SCRIPTS_DIR/convert_csv_to_txt.py"
 ├── CONVERT_XLSX_TO_CSV="$EXECUTE_SCRIPTS_DIR/convert_xlsx_to_csv.py"
-└── [其他 20+ 个脚本变量...]
+└── [其他 22+ 个脚本变量...]
 ```
 
 **维护优势**:
@@ -422,7 +430,7 @@ Raycast 脚本 (raycast/trf/*.sh)
 
 ```bash
 # 旧方式（需要在每个脚本中维护完整路径）
-"$PYTHON_PATH" "$SCRIPTS_DIR/execute/scripts/convert_csv_to_txt.py"
+"$PYTHON_PATH" "$SCRIPTS_DIR/execute/scripts_ray/convert_csv_to_txt.py"
 
 # 优化方式（使用预定义变量，简洁且语义化）
 "$PYTHON_PATH" "$CONVERT_CSV_TO_TXT"
@@ -432,7 +440,7 @@ Raycast 脚本 (raycast/trf/*.sh)
 
 ```bash
 # 第一层：基础目录变量
-EXECUTE_SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts"
+EXECUTE_SCRIPTS_DIR="/Users/tianli/useful_scripts/execute/scripts_ray"
 
 # 第二层：具体脚本变量
 CONVERT_CSV_TO_TXT="$EXECUTE_SCRIPTS_DIR/convert_csv_to_txt.py"
