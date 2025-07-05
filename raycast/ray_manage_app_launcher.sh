@@ -2,7 +2,7 @@
 # Raycast parameters
 # @raycast.schemaVersion 1
 # @raycast.title manage_app_launcher
-# @raycast.mode silent
+# @raycast.mode fullOutput
 # @raycast.icon 🚀
 # @raycast.packageName Custom
 # @raycast.description 根据桌面上的essential_apps.txt列表启动必要的应用程序

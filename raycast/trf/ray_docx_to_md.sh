@@ -2,7 +2,7 @@
 # Raycast parameters
 # @raycast.schemaVersion 1
 # @raycast.title docx_to_md
-# @raycast.mode silent
+# @raycast.mode fullOutput
 # @raycast.icon 📂
 # @raycast.packageName Custom
 # @raycast.description 将选中的Docx文件或文件夹转换为Markdown

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# ===== 环境变量设置 =====
+# 设置 PATH 以包含 miniforge 环境
+export PATH="/Users/tianli/miniforge3/bin:$PATH"
+
 # ===== 常量定义 =====
 readonly PYTHON_PATH="/Users/tianli/miniforge3/bin/python3"
 readonly MINIFORGE_BIN="/Users/tianli/miniforge3/bin"
@@ -48,6 +52,9 @@ readonly SPLITSHEETS="$EXECUTE_SCRIPTS_DIR/splitsheets.py"
 # 比较工具脚本 (2个)
 readonly COMPARE_FILES_FOLDERS="$EXECUTE_DIR/compare/compare_files_folders.py"
 readonly COMPARE_EXCEL_DATA="$EXECUTE_DIR/compare/compare_excel_data.py"
+
+# 系统工具脚本 (1个)
+readonly PASTE_TO_FINDER_SCRIPT="$EXECUTE_SCRIPTS_DIR/paste_to_finder.sh"
 
 # ===== 通用函数 =====
 
