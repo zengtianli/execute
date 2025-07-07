@@ -103,7 +103,7 @@ get_file_extension() {
 validate_file_path() {
     local path="$1"
     # 检查路径是否包含恶意字符
-    if [[ "$path" =~ \.\./|\||\; ]]; then
+    if [[ "$path" =~ \.\./|\\\||\; ]]; then
         show_error "不安全的文件路径: $path"
         return 1
     fi
@@ -288,6 +288,108 @@ $script
 EOF
 }
 
+# ===== Finder 集成函数 =====
+
+# 获取Finder当前目录
+# 返回: Finder当前目录的POSIX路径
+get_finder_directory() {
+    osascript <<'EOF'
+tell application "Finder"
+    if (count of (selection as list)) > 0 then
+        set firstItem to item 1 of (selection as list)
+        if class of firstItem is folder then
+            POSIX path of (firstItem as alias)
+        else
+            POSIX path of (container of firstItem as alias)
+        end if
+    else
+        POSIX path of (insertion location as alias)
+    end if
+end tell
+EOF
+}
+
+# 获取Finder选中的文件列表
+# 返回: 选中文件的POSIX路径列表（每行一个）
+get_finder_selection() {
+    osascript <<'EOF'
+tell application "Finder"
+    set selectedItems to selection
+    if (count of selectedItems) = 0 then
+        return ""
+    end if
+    
+    set itemPaths to {}
+    repeat with selectedItem in selectedItems
+        set end of itemPaths to POSIX path of (selectedItem as alias)
+    end repeat
+    
+    set AppleScript's text item delimiters to linefeed
+    set pathsText to itemPaths as text
+    set AppleScript's text item delimiters to ""
+    
+    return pathsText
+end tell
+EOF
+}
+
+# 在Finder中显示指定文件
+# 参数: $1 = 文件路径
+reveal_file_in_finder() {
+    local file_path="$1"
+    osascript <<EOF
+tell application "Finder"
+    activate
+    reveal POSIX file "$file_path" as alias
+end tell
+EOF
+}
+
+# 验证Finder目录是否可写
+# 参数: $1 = 目录路径
+# 返回: 0 = 可写, 1 = 不可写
+validate_finder_directory() {
+    local target_dir="$1"
+    
+    if [ -z "$target_dir" ]; then
+        fatal_error "无法获取Finder当前目录"
+    fi
+    
+    if [ ! -d "$target_dir" ]; then
+        fatal_error "目录不存在: $target_dir"
+    fi
+    
+    if [ ! -w "$target_dir" ]; then
+        fatal_error "目录不可写: $target_dir"
+    fi
+    
+    return 0
+}
+
+# 生成唯一文件名（避免重复）
+# 参数: $1 = 基础文件名, $2 = 扩展名, $3 = 目录路径
+# 返回: 唯一的文件路径
+generate_unique_filename() {
+    local base_name="$1"
+    local extension="$2"
+    local output_dir="$3"
+    
+    if [ -z "$base_name" ]; then
+        base_name="file_$(date +%Y%m%d_%H%M%S)"
+    fi
+    
+    local file_path="$output_dir/${base_name}${extension}"
+    
+    # 如果文件已存在，添加数字后缀
+    local counter=1
+    while [ -e "$file_path" ]; do
+        file_path="$output_dir/${base_name}_${counter}${extension}"
+        ((counter++))
+    done
+    
+    echo "$file_path"
+}
+
 # ===== 版本和帮助函数模板 =====
 
 # 标准版本显示函数模板
@@ -314,4 +416,24 @@ show_help_footer() {
     echo "    -h, --help       显示此帮助信息"
     echo "    --version        显示版本信息"
     echo ""
+}
+
+# 标准参数解析函数 - 处理通用参数
+# 参数: $1 = 参数名, $2 = 参数值 (可选)
+# 返回: 0 = 已处理, 1 = 未处理（需要脚本自己处理）
+parse_common_args() {
+    local arg="$1"
+    local value="$2"
+    
+    case "$arg" in
+        -h|--help)
+            return 2  # 特殊返回值表示显示帮助
+            ;;
+        --version)
+            return 3  # 特殊返回值表示显示版本
+            ;;
+        *)
+            return 1  # 未处理，需要脚本自己处理
+            ;;
+    esac
 } 

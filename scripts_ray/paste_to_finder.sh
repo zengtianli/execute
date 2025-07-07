@@ -1,60 +1,41 @@
 #!/bin/bash
 
 # paste_to_finder.sh - 独立的Finder粘贴工具
-# 版本: 1.0.0
+# 版本: 1.1.0
 # 作者: tianli
 
 # 引入通用函数库
 source "$(dirname "${BASH_SOURCE[0]}")/common_functions.sh"
 
+# 脚本信息
+readonly SCRIPT_VERSION="1.1.0"
+readonly SCRIPT_AUTHOR="tianli"
+readonly SCRIPT_UPDATED="2024-12"
+
 # 显示版本信息
 show_version() {
-    echo "Finder粘贴工具 v1.0.0"
-    echo "作者: tianli"
+    echo "Finder粘贴工具 v${SCRIPT_VERSION}"
+    echo "作者: ${SCRIPT_AUTHOR}"
 }
 
 # 显示帮助信息
 show_help() {
-    cat << EOF
-Finder粘贴工具 - 智能粘贴到Finder目录
-
-用法: $0 [选项] [目标目录]
-
-选项:
-    -h, --help       显示此帮助信息
-    --version        显示版本信息
-
-参数:
-    目标目录         要粘贴到的目录（可选，默认使用Finder当前目录）
-
-示例:
-    $0                           # 粘贴到Finder当前位置
-    $0 ~/Desktop                 # 粘贴到桌面
-    $0 "/Users/tianli/Documents" # 粘贴到指定目录
-
-功能:
-    - 自动检测Finder当前目录
-    - 支持文件、文本等各种剪贴板内容
-    - 智能错误处理
-EOF
-}
-
-# 获取Finder当前目录
-get_finder_directory() {
-    osascript <<'EOF'
-tell application "Finder"
-    if (count of (selection as list)) > 0 then
-        set firstItem to item 1 of (selection as list)
-        if class of firstItem is folder then
-            POSIX path of (firstItem as alias)
-        else
-            POSIX path of (container of firstItem as alias)
-        end if
-    else
-        POSIX path of (insertion location as alias)
-    end if
-end tell
-EOF
+    show_help_header "$0" "Finder粘贴工具 - 智能粘贴到Finder目录"
+    echo "    --use-commands   使用命令行方式（而非AppleScript）"
+    show_help_footer
+    
+    echo "参数:"
+    echo "    目标目录         要粘贴到的目录（可选，默认使用Finder当前目录）"
+    echo ""
+    echo "示例:"
+    echo "    $0                           # 粘贴到Finder当前位置"
+    echo "    $0 ~/Desktop                 # 粘贴到桌面"
+    echo "    $0 \"/Users/tianli/Documents\" # 粘贴到指定目录"
+    echo ""
+    echo "功能:"
+    echo "    - 自动检测Finder当前目录"
+    echo "    - 支持文件、文本等各种剪贴板内容"
+    echo "    - 智能错误处理"
 }
 
 # 执行粘贴操作（方案A：使用系统命令）
@@ -84,7 +65,7 @@ paste_with_commands() {
         if [ -n "$clipboard_content" ]; then
             # 创建临时文件名
             local timestamp=$(date +%Y%m%d_%H%M%S)
-            local temp_file="$target_dir/pasted_text_$timestamp.txt"
+            local temp_file=$(generate_unique_filename "pasted_text_$timestamp" ".txt" "$target_dir")
             
             echo "$clipboard_content" > "$temp_file"
             show_success "已创建文本文件: $(basename "$temp_file")"
@@ -161,20 +142,11 @@ main() {
     # 确定目标目录
     if [ -z "$target_dir" ]; then
         target_dir=$(get_finder_directory)
-        if [ -z "$target_dir" ]; then
-            fatal_error "无法获取Finder当前目录"
-        fi
         show_info "目标目录: $(basename "$target_dir")"
     fi
     
     # 验证目标目录
-    if [ ! -d "$target_dir" ]; then
-        fatal_error "目录不存在: $target_dir"
-    fi
-    
-    if [ ! -w "$target_dir" ]; then
-        fatal_error "目录不可写: $target_dir"
-    fi
+    validate_finder_directory "$target_dir"
     
     # 执行粘贴
     if [ "$use_applescript" = true ]; then

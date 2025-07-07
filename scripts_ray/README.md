@@ -84,108 +84,37 @@ useful_scripts/
   - Pandoc (用于文档转换)
   - markitdown (用于 Markdown 转换)
 
-## 📦 安装
-
-### 1. 克隆项目
-```bash
-git clone https://github.com/your-username/useful_scripts.git
-cd useful_scripts
-```
-
-### 2. 安装 Python 依赖
-```bash
-# 安装基础依赖
-pip install pandas openpyxl python-docx python-pptx tiktoken markitdown
-
-# 或使用 requirements.txt (如果存在)
-pip install -r requirements.txt
-```
-
-### 3. 安装系统工具
-```bash
-# 安装 Homebrew (如果未安装)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# 安装 Pandoc
-brew install pandoc
-
-# 安装 LibreOffice (用于图片转换)
-brew install --cask libreoffice
-```
-
-### 4. 配置脚本权限
-```bash
-# 给所有 shell 脚本添加执行权限
-find . -name "*.sh" -exec chmod +x {} \;
-```
-
-## 🚀 快速开始
-
-### 文档转换示例
-```bash
-# 转换当前目录下所有支持的文档
-./convert_all.sh -a
-
-# 只转换 Word 文档
-./convert_all.sh -d
-
-# 递归处理子目录
-./convert_all.sh -a -r
-
-# 转换单个 PowerPoint 文件
-python3 pptx2md.py presentation.pptx
-```
-
-### 表格处理示例
-```bash
-# 合并当前目录下所有 CSV 文件
-./mergecsv.sh
-
-# 分离 Excel 工作表
-python3 splitsheets.py workbook.xlsx
-
-# CSV 转 Excel
-python3 csv2xls.py data.csv
-```
-
-### 内容提取示例
-```bash
-# 从所有 Office 文档提取图片
-python3 ext_img_dp.py
-
-# 从所有 Office 文档提取表格
-python3 ext_tab_dp.py
-
-# 创建提取内容的符号链接
-./ext2alias.sh
-```
-
-## 📚 详细文档
-
-- [安装指南](INSTALL.md) - 详细的安装和配置说明
-- [问题排查](TROUBLESHOOTING.md) - 常见问题及解决方案
-- [贡献指南](CONTRIBUTING.md) - 如何为项目贡献代码
-- [代码规范](Shell脚本代码规范文档.md) - Shell 脚本编写规范
-
-## 🤝 贡献
-
-欢迎贡献代码、报告问题或提出建议！请查看 [贡献指南](CONTRIBUTING.md) 了解详细信息。
-
-## 📄 许可证
-
-本项目采用 [MIT 许可证](LICENSE.md)。
-
-## 🆘 支持
-
-如果遇到问题，请：
-1. 查看 [问题排查指南](TROUBLESHOOTING.md)
-2. 搜索 [Issues](../../issues) 中是否有类似问题
-3. 创建新的 Issue 并提供详细信息
-
-## 🏷️ 版本历史
-
-查看 [CHANGELOG.md](CHANGELOG.md) 了解版本更新历史。
-
----
-
-**⭐ 如果这个项目对你有帮助，请给个 Star！** 
+| 脚本名称 | 功能说明 |
+|---------|---------|
+| common_functions.sh | 通用 Shell 函数库,提供常用功能 |
+| common_utils.py | Python 通用工具函数库 |
+| convert_csv_to_txt.py | 将 CSV 文件转换为纯文本文件 |
+| convert_csv_to_xlsx.py | 将 CSV 文件转换为 Excel 文件 |
+| convert_doc_to_text.sh | 将 DOC 文档转换为纯文本 |
+| convert_docx_to_md.sh | 将 DOCX 文档转换为 Markdown |
+| convert_docx_to_pdf.sh | 将 DOCX 文档转换为 PDF |
+| convert_office_batch.sh | 批量转换 Office 文档 |
+| convert_pptx_to_md.py | 将 PPT 演示文稿转换为 Markdown |
+| convert_txt_to_csv.py | 将纯文本转换为 CSV 格式 |
+| convert_txt_to_xlsx.py | 将纯文本转换为 Excel 文件 |
+| convert_wmf_to_png.py | 将 WMF 图片转换为 PNG 格式 |
+| convert_xlsx_to_csv.py | 将 Excel 文件转换为 CSV |
+| convert_xlsx_to_txt.py | 将 Excel 文件转换为纯文本 |
+| extract_images_office.py | 从 Office 文档中提取图片 |
+| extract_markdown_files.sh | 提取并处理 Markdown 文件 |
+| extract_tables_office.py | 从 Office 文档中提取表格 |
+| extract_text_tokens.py | 提取文本中的 Token 数量 |
+| file_move_up_level.sh | 将文件移动到上一级目录 |
+| link_bind_files.py | 创建文件绑定链接 |
+| link_create_aliases.sh | 创建文件别名链接 |
+| link_images_central.sh | 集中管理图片链接 |
+| list_applications.sh | 列出已安装的应用程序 |
+| manage_app_launcher.sh | 管理应用程序启动器 |
+| manage_pip_packages.sh | 管理 Python 包更新 |
+| merge_csv_files.sh | 合并多个 CSV 文件 |
+| merge_markdown_files.sh | 合并多个 Markdown 文件 |
+| paste_to_finder.sh | 粘贴内容到 Finder |
+| ray_toggle_raycast.sh | 切换 Raycast 快捷功能 |
+| simple_paste.sh | 简单的粘贴功能 |
+| splitsheets.py | 拆分 Excel 工作表为单独文件 |
+| compress_select.sh | 智能ZIP压缩工具 - 压缩文件/文件夹（支持命令行+Finder） |
