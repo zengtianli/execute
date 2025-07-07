@@ -1,196 +1,109 @@
 #!/usr/bin/env python3
-from docx import Document
-from pptx import Presentation
-from pptx.enum.shapes import MSO_SHAPE_TYPE
-import os
-import subprocess
+
+"""
+Office文件图片提取工具 - 从.docx, .pptx, .xlsx文件中提取所有图片
+版本: 2.0.0
+作者: tianli
+"""
+
+import sys
+import zipfile
+import argparse
 from pathlib import Path
 
-def convert_wmf_files(directory):
-    """调用 wmf2png.sh 脚本转换目录中的 WMF 文件"""
-    # 检查目录中是否有 WMF 文件
-    wmf_files = list(Path(directory).glob("*.wmf"))
-    
-    if wmf_files:
-        print(f"  发现 {len(wmf_files)} 个 WMF 文件，尝试转换...")
-        
-        # convert_wmf_to_png.sh 脚本的路径
-        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "convert_wmf_to_png.sh")
-        
-        try:
-            # 调用 wmf2png.sh 脚本
-            subprocess.run(["bash", script_path], cwd=directory, check=True)
-            print("  WMF 文件转换完成")
-        except subprocess.CalledProcessError as e:
-            print(f"  WMF 转换出错: {e}")
-        except Exception as e:
-            print(f"  WMF 转换异常: {e}")
+from common_utils import (
+    show_success, show_error, show_warning, show_info,
+    validate_input_file, ensure_directory, ProgressTracker,
+    fatal_error, show_version_info, find_files_by_extension
+)
 
-def extract_images_from_docx(docx_path, output_dir):
-    """从 DOCX 文件中提取所有图片"""
-    try:
-        doc = Document(docx_path)
-        
-        # 创建输出目录
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        
-        # 获取文件名（不含扩展名）
-        base_name = os.path.splitext(os.path.basename(docx_path))[0]
-        
-        # 提取图片
-        img_count = 0
-        has_wmf = False
-        
-        for i, rel in enumerate(doc.part.rels.values()):
-            if "image" in rel.target_ref:
-                img = rel.target_part.blob
-                img_count += 1
-                
-                # 获取图片扩展名
-                ext = rel.target_ref.split('.')[-1].lower()
-                
-                # 检查是否是 WMF 文件
-                if ext == 'wmf':
-                    has_wmf = True
-                    img_name = f"{base_name}_img_{img_count}.{ext}"
-                elif ext not in ['png', 'jpg', 'jpeg', 'gif', 'bmp']:
-                    ext = 'png'  # 默认使用 png
-                    img_name = f"{base_name}_img_{img_count}.{ext}"
-                else:
-                    img_name = f"{base_name}_img_{img_count}.{ext}"
-                
-                img_path = os.path.join(output_dir, img_name)
-                
-                with open(img_path, "wb") as f:
-                    f.write(img)
-                
-                print(f"  已保存: {img_path}")
-        
-        if img_count == 0:
-            print(f"  未找到图片")
-            # 如果没有图片，删除空文件夹
-            if os.path.exists(output_dir) and not os.listdir(output_dir):
-                os.rmdir(output_dir)
-        else:
-            print(f"  共提取 {img_count} 张图片")
-            
-            # 如果有WMF文件，调用转换脚本
-            if has_wmf:
-                convert_wmf_files(output_dir)
-                
-    except Exception as e:
-        print(f"  处理出错: {e}")
+SCRIPT_VERSION = "2.0.0"
 
-def extract_images_from_pptx(pptx_path, output_dir):
-    """从 PPTX 文件中提取所有图片"""
+def extract_images_from_file(file_path: Path, output_dir: Path) -> int:
+    if not validate_input_file(file_path):
+        return 0
+
+    supported_extensions = ['.docx', '.pptx', '.xlsx']
+    if file_path.suffix not in supported_extensions:
+        show_warning(f"跳过不支持的文件类型: {file_path.name}")
+        return 0
+
     try:
-        prs = Presentation(pptx_path)
-        
-        # 创建输出目录
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        
-        # 获取文件名（不含扩展名）
-        base_name = os.path.splitext(os.path.basename(pptx_path))[0]
-        
-        img_count = 0
-        has_wmf = False
-        
-        # 遍历每个幻灯片
-        for slide_num, slide in enumerate(prs.slides, 1):
-            # 遍历幻灯片中的每个形状
-            for shape in slide.shapes:
-                # 检查是否是图片
-                if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
-                    img_count += 1
-                    
-                    # 获取图片
-                    image = shape.image
-                    
-                    # 获取图片扩展名
-                    ext = image.ext.lower()
-                    
-                    # 检查是否是 WMF 文件
-                    if ext == 'wmf':
-                        has_wmf = True
-                    
-                    # 生成文件名（包含幻灯片编号）
-                    img_name = f"{base_name}_slide{slide_num}_img{img_count}.{ext}"
-                    img_path = os.path.join(output_dir, img_name)
-                    
-                    # 保存图片
-                    with open(img_path, "wb") as f:
-                        f.write(image.blob)
-                    
-                    print(f"  已保存: {img_path}")
-                
-                # 检查是否是组合形状（可能包含图片）
-                elif hasattr(shape, "shapes"):
-                    for shape_in_group in shape.shapes:
-                        if shape_in_group.shape_type == MSO_SHAPE_TYPE.PICTURE:
-                            img_count += 1
-                            image = shape_in_group.image
-                            ext = image.ext.lower()
-                            
-                            # 检查是否是 WMF 文件
-                            if ext == 'wmf':
-                                has_wmf = True
-                                
-                            img_name = f"{base_name}_slide{slide_num}_img{img_count}.{ext}"
-                            img_path = os.path.join(output_dir, img_name)
-                            
-                            with open(img_path, "wb") as f:
-                                f.write(image.blob)
-                            
-                            print(f"  已保存: {img_path}")
-        
-        if img_count == 0:
-            print(f"  未找到图片")
-            # 如果没有图片，删除空文件夹
-            if os.path.exists(output_dir) and not os.listdir(output_dir):
-                os.rmdir(output_dir)
-        else:
-            print(f"  共提取 {img_count} 张图片")
+        with zipfile.ZipFile(file_path, 'r') as archive:
+            image_files = [
+                f for f in archive.namelist()
+                if f.startswith('word/media/') or f.startswith('ppt/media/') or f.startswith('xl/media/')
+            ]
             
-            # 如果有WMF文件，调用转换脚本
-            if has_wmf:
-                convert_wmf_files(output_dir)
-                
+            if not image_files:
+                show_info(f"在 {file_path.name} 中未找到图片")
+                return 0
+
+            file_output_dir = output_dir / file_path.stem
+            ensure_directory(file_output_dir)
+            
+            show_processing(f"从 {file_path.name} 提取 {len(image_files)} 张图片...")
+            
+            count = 0
+            for image_file in image_files:
+                archive.extract(image_file, file_output_dir)
+                count += 1
+            
+            show_success(f"成功提取 {count} 张图片到 {file_output_dir}")
+            return count
+
+    except zipfile.BadZipFile:
+        show_error(f"文件损坏或格式不正确: {file_path.name}")
+        return 0
     except Exception as e:
-        print(f"  处理出错: {e}")
+        show_error(f"处理 {file_path.name} 时发生错误: {e}")
+        return 0
 
 def main():
-    """主函数：处理当前目录下所有的 DOCX 和 PPTX 文件"""
-    current_dir = Path.cwd()
-    docx_files = list(current_dir.glob("*.docx"))
-    pptx_files = list(current_dir.glob("*.pptx"))
+    parser = argparse.ArgumentParser(
+        description="Office文件图片提取工具",
+        epilog="示例: a_script.py file.docx -o ./output --recursive"
+    )
+    parser.add_argument("input_paths", nargs='+', help="一个或多个文件/目录路径")
+    parser.add_argument("-o", "--output", help="输出目录 (默认: ./extracted_images)")
+    parser.add_argument("-r", "--recursive", action="store_true", help="递归处理目录")
+    parser.add_argument('--version', action='version', version=f'%(prog)s {SCRIPT_VERSION}')
     
-    all_files = docx_files + pptx_files
+    args = parser.parse_args()
+
+    if args.output:
+        output_dir = Path(args.output)
+    else:
+        # 如果处理的是单个文件，则在文件同级目录创建文件夹
+        first_path = Path(args.input_paths[0])
+        if len(args.input_paths) == 1 and first_path.is_file():
+            output_dir = first_path.parent
+        else:
+            output_dir = Path("./extracted_images")
+
+    ensure_directory(output_dir)
+    show_info(f"输出目录: {output_dir.resolve()}")
     
-    if not all_files:
-        print("当前目录未找到 DOCX 或 PPTX 文件")
-        return
+    files_to_process = find_files_by_extension(
+        args.input_paths,
+        ['docx', 'pptx', 'xlsx'],
+        recursive=args.recursive
+    )
+
+    if not files_to_process:
+        show_warning("未找到任何支持的Office文件")
+        sys.exit(0)
+
+    total_extracted = 0
+    progress = ProgressTracker(len(files_to_process))
     
-    print(f"找到 {len(docx_files)} 个 DOCX 文件和 {len(pptx_files)} 个 PPTX 文件\n")
-    
-    for file_path in all_files:
-        # 跳过临时文件（以~$开头的）
-        if file_path.name.startswith('~$'):
-            continue
-            
-        print(f"处理: {file_path.name}")
-        
-        # 创建对应的输出目录名（文件名_img）
-        output_dir = current_dir / f"{file_path.stem}_img"
-        
-        # 根据文件类型提取图片
-        if file_path.suffix.lower() == '.docx':
-            extract_images_from_docx(str(file_path), str(output_dir))
-        elif file_path.suffix.lower() == '.pptx':
-            extract_images_from_pptx(str(file_path), str(output_dir))
-        
-        print()
+    for file_path in files_to_process:
+        progress.show(f"处理 {file_path.name}")
+        count = extract_images_from_file(file_path, output_dir)
+        total_extracted += count
+
+    show_info("\n处理完成")
+    show_success(f"总共提取了 {total_extracted} 张图片")
 
 if __name__ == "__main__":
     main()

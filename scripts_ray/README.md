@@ -1,120 +1,141 @@
-# Useful Scripts Collection
+# 实用工具脚本集合
 
-一个实用脚本集合，包含文档转换、文件管理、系统自动化等各种工具，主要适用于 macOS 系统。
+这是一系列用于macOS的实用工具脚本，旨在自动化日常的文件处理、格式转换和系统管理任务。所有脚本都经过重构，以实现代码的简洁性、一致性和可维护性。
 
-## 🚀 项目概述
+## 设计原则
 
-本项目旨在提供一系列实用的脚本工具，帮助用户自动化日常工作流程，包括：
+- **代码即文档**: 脚本应尽可能自解释，避免不必要的注释。
+- **模块化**: 通用功能被提取到 `common_functions.sh` (Bash) 和 `common_utils.py` (Python) 中。
+- **一致性**: 所有脚本都遵循统一的结构、参数处理和消息输出标准。
+- **简洁性**: 每个脚本都保持在200行以内，专注于核心功能。
 
-- **文档转换**：支持 DOC/DOCX/PPTX/PDF/Markdown 等格式之间的转换
-- **表格处理**：CSV/XLS/XLSX 格式转换和数据处理
-- **文件管理**：批量文件操作、提取、合并等功能
-- **系统自动化**：Raycast 集成、Yabai 窗口管理、应用程序管理
-- **实用工具**：文本处理、Token 计算、图片转换等
+## 安装
 
-## 📁 项目结构
+### 1. 克隆仓库
 
-```
-useful_scripts/
-├── 📄 文档转换工具
-│   ├── convert_all.sh          # 综合文档转换工具
-│   ├── markitdown_docx2md.sh   # DOCX 转 Markdown
-│   ├── pptx2md.py             # PowerPoint 转 Markdown
-│   └── d2t_pandoc.sh          # DOC/DOCX 转文本
-│
-├── 📊 表格处理工具
-│   ├── csv2xls.py             # CSV 转 Excel
-│   ├── splitsheets.py         # Excel 工作表分离
-│   ├── mergecsv.sh           # CSV 文件合并
-│   └── csvtxtxlsx/           # 表格格式转换工具集
-│
-├── 🗂️ 文件管理工具
-│   ├── ext_img_dp.py         # 从文档提取图片
-│   ├── ext_tab_dp.py         # 从文档提取表格
-│   ├── extract_md_files.sh   # 提取 Markdown 文件
-│   ├── move_files_up.sh      # 文件向上移动
-│   └── list/                 # 文件列表管理工具
-│
-├── ⚡ Raycast 集成
-│   └── raycast/              # Raycast 快捷脚本集合
-│       ├── trf/              # 文件转换脚本
-│       └── yabai/            # 窗口管理脚本
-│
-├── 🖥️ 系统工具
-│   ├── yabai/                # Yabai 窗口管理器配置
-│   ├── launch_mis.sh         # 应用程序管理
-│   ├── list_app.sh          # 运行应用列表
-│   └── pip_update.sh        # Python 包更新
-│
-└── 🛠️ 实用工具
-    ├── gettoken.py          # Token 数量计算
-    ├── wmf2png.sh          # WMF 图片转换
-    └── others/             # 其他实用脚本
+```bash
+git clone <your-repo-url>
+cd useful_scripts
 ```
 
-## 🎯 主要功能
+### 2. 安装依赖
 
-### 1. 文档转换
-- **一键批量转换**：支持 DOC → DOCX → Markdown 的完整转换链
-- **PowerPoint 转换**：将 PPTX 转换为结构化的 Markdown，保留图片和表格
-- **格式保留**：尽可能保持原文档的格式和结构
+#### Python 依赖
 
-### 2. 表格处理
-- **多格式支持**：CSV、XLS、XLSX 之间的相互转换
-- **工作表分离**：将多工作表的 Excel 文件分离成单独文件
-- **数据合并**：智能合并多个 CSV 文件
+所有Python脚本的依赖都已在 `requirements.txt` 中列出。
 
-### 3. 内容提取
-- **图片提取**：从 DOCX/PPTX 文档中提取所有图片，支持 WMF 转 PNG
-- **表格提取**：提取文档中的表格并转换为 CSV/Markdown 格式
-- **内容管理**：创建符号链接便于统一管理提取的内容
+```bash
+pip3 install -r scripts_ray/requirements.txt
+```
 
-### 4. Raycast 集成
-- **快速转换**：通过 Raycast 快速执行文件格式转换
-- **窗口管理**：集成 Yabai 的窗口操作命令
-- **应用启动**：快速启动常用应用程序
+#### 系统依赖
 
-## 🔧 系统要求
+某些脚本需要通过 Homebrew 安装系统工具：
 
-- **操作系统**：macOS 10.15 或更高版本
-- **Python**：3.7+ (推荐使用 Miniforge)
-- **依赖工具**：
-  - Microsoft Office (用于 DOC/XLS 转换)
-  - LibreOffice (用于 WMF 图片转换)
-  - Pandoc (用于文档转换)
-  - markitdown (用于 Markdown 转换)
+- **pandoc**: 用于文档格式转换。
+  ```bash
+  brew install pandoc
+  ```
+- **LibreOffice**: 用于Office文档的高保真转换。
+  ```bash
+  brew install --cask libreoffice
+  ```
 
-| 脚本名称 | 功能说明 |
-|---------|---------|
-| common_functions.sh | 通用 Shell 函数库,提供常用功能 |
-| common_utils.py | Python 通用工具函数库 |
-| convert_csv_to_txt.py | 将 CSV 文件转换为纯文本文件 |
-| convert_csv_to_xlsx.py | 将 CSV 文件转换为 Excel 文件 |
-| convert_doc_to_text.sh | 将 DOC 文档转换为纯文本 |
-| convert_docx_to_md.sh | 将 DOCX 文档转换为 Markdown |
-| convert_docx_to_pdf.sh | 将 DOCX 文档转换为 PDF |
-| convert_office_batch.sh | 批量转换 Office 文档 |
-| convert_pptx_to_md.py | 将 PPT 演示文稿转换为 Markdown |
-| convert_txt_to_csv.py | 将纯文本转换为 CSV 格式 |
-| convert_txt_to_xlsx.py | 将纯文本转换为 Excel 文件 |
-| convert_wmf_to_png.py | 将 WMF 图片转换为 PNG 格式 |
-| convert_xlsx_to_csv.py | 将 Excel 文件转换为 CSV |
-| convert_xlsx_to_txt.py | 将 Excel 文件转换为纯文本 |
-| extract_images_office.py | 从 Office 文档中提取图片 |
-| extract_markdown_files.sh | 提取并处理 Markdown 文件 |
-| extract_tables_office.py | 从 Office 文档中提取表格 |
-| extract_text_tokens.py | 提取文本中的 Token 数量 |
-| file_move_up_level.sh | 将文件移动到上一级目录 |
-| link_bind_files.py | 创建文件绑定链接 |
-| link_create_aliases.sh | 创建文件别名链接 |
-| link_images_central.sh | 集中管理图片链接 |
-| list_applications.sh | 列出已安装的应用程序 |
-| manage_app_launcher.sh | 管理应用程序启动器 |
-| manage_pip_packages.sh | 管理 Python 包更新 |
-| merge_csv_files.sh | 合并多个 CSV 文件 |
-| merge_markdown_files.sh | 合并多个 Markdown 文件 |
-| paste_to_finder.sh | 粘贴内容到 Finder |
-| ray_toggle_raycast.sh | 切换 Raycast 快捷功能 |
-| simple_paste.sh | 简单的粘贴功能 |
-| splitsheets.py | 拆分 Excel 工作表为单独文件 |
-| compress_select.sh | 智能ZIP压缩工具 - 压缩文件/文件夹（支持命令行+Finder） |
+## 脚本说明
+
+### 文件操作 (`file_ops.sh`)
+
+这是一个文件处理工具的启动器。
+
+- **用法**: `./file_ops.sh <command> [args...]`
+- **命令**:
+  - `compress`: 压缩文件或文件夹 (调用 `compress_select.sh`)。
+  - `merge_md`: 合并Markdown文件 (调用 `merge_markdown_files.sh`)。
+  - `merge_csv`: 合并CSV文件 (调用 `merge_csv_files.sh`)。
+  - `split_excel`: 按工作表拆分Excel文件 (调用 `splitsheets.py`)。
+
+---
+
+### Office 操作 (`office_ops.sh`)
+
+这是一个Office文件处理工具的启动器。
+
+- **用法**: `./office_ops.sh <command> [args...]`
+- **命令**:
+  - `extract_img`: 从Office文档中提取图片 (调用 `extract_images_office.py`)。
+  - `extract_tbl`: 从Office文档中提取表格 (调用 `extract_tables_office.py`)。
+  - `convert`: 批量转换Office文档格式 (调用 `convert_office_batch.sh`)。
+
+---
+
+### 格式转换脚本
+
+这些脚本可以直接调用，用于单一类型的格式转换。所有转换脚本都支持 `-r` (递归) 和 `-h` (帮助) 选项。
+
+- **Python**:
+  - `convert_csv_to_txt.py`
+  - `convert_csv_to_xlsx.py`
+  - `convert_txt_to_csv.py`
+  - `convert_txt_to_xlsx.py`
+  - `convert_xlsx_to_csv.py`
+  - `convert_xlsx_to_txt.py`
+  - `convert_pptx_to_md.py`
+  - `splitsheets.py` (拆分Excel)
+
+- **Bash**:
+  - `convert_doc_to_text.sh`
+  - `convert_docx_to_md.sh`
+  - `convert_docx_to_pdf.sh`
+
+---
+
+### 提取与分析脚本
+
+- `extract_images_office.py`: 从 `.docx`, `.pptx`, `.xlsx` 文件中提取所有图片。
+- `extract_tables_office.py`: 从 `.docx`, `.pptx`, `.xlsx` 文件中提取所有表格为CSV。
+- `extract_text_tokens.py`: 分析文本文件，提取并统计词元。
+
+---
+
+### 其他工具
+
+- `manage_pip_packages.sh`: 用于安装、更新、导出和检查Python包。
+- `link_bind_files.py`: 将源目录的文件链接到一个中央目录，并可选择监控文件变化。
+- `common_functions.sh`: Bash脚本的通用函数库。
+- `common_utils.py`: Python脚本的通用工具库。
+
+## 使用示例
+
+### 示例 1: 压缩Finder中选中的文件
+
+1. 在Finder中选中一些文件或文件夹。
+2. 运行脚本:
+   ```bash
+   ./scripts_ray/file_ops.sh compress
+   ```
+   压缩后的ZIP文件将出现在当前文件夹。
+
+### 示例 2: 递归将所有DOCX转为PDF
+
+```bash
+./scripts_ray/convert_docx_to_pdf.sh -r ./my_documents
+```
+
+### 示例 3: 提取PPTX中的所有图片和表格
+
+```bash
+# 提取图片
+./scripts_ray/office_ops.sh extract_img my_presentation.pptx
+
+# 提取表格
+./scripts_ray/office_ops.sh extract_tbl my_presentation.pptx
+```
+提取的内容将保存在以演示文稿名命名的文件夹中。
+
+### 示例 4: 批量转换所有Office文档
+
+运行一个命令来处理当前目录（包括子目录）中的所有Word、Excel和PowerPoint文件。
+
+```bash
+./scripts_ray/office_ops.sh convert -a -r
+```

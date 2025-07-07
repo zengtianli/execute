@@ -1,129 +1,49 @@
 #!/bin/bash
 
-safe_cd() {
-    local target_dir="$1"
-    if cd "$target_dir" 2>/dev/null; then
-        return 0
+source "$(dirname "${BASH_SOURCE[0]}")/common_functions.sh"
+
+readonly SCRIPT_VERSION="2.0.0"
+readonly SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+
+show_help() {
+    show_help_header "$0" "文件操作工具集"
+    echo "    compress           压缩文件/文件夹"
+    echo "    merge_md           合并Markdown文件"
+    echo "    merge_csv          合并CSV文件"
+    echo "    split_excel        拆分Excel工作表"
+    show_help_footer
+}
+
+main() {
+    if [ $# -eq 0 ]; then
+        show_help
+        exit 1
+    fi
+
+    local command="$1"
+    shift
+
+    local script_to_run=""
+    case "$command" in
+        compress) script_to_run="compress_select.sh" ;;
+        merge_md) script_to_run="merge_markdown_files.sh" ;;
+        merge_csv) script_to_run="merge_csv_files.sh" ;;
+        split_excel) script_to_run="splitsheets.py" ;;
+        *) show_error "未知命令: $command"; show_help; exit 1 ;;
+    esac
+
+    local script_path="$SCRIPT_DIR/$script_to_run"
+    if [ ! -f "$script_path" ]; then
+        fatal_error "脚本不存在: $script_path"
+    fi
+
+    show_info "--- 正在执行: $script_to_run $* ---"
+    if [[ "$script_to_run" == *.py ]]; then
+        python3 "$script_path" "$@"
     else
-        echo "❌ 无法进入目录: $target_dir" >&2
-        return 1
+        bash "$script_path" "$@"
     fi
+    show_success "--- 执行完成 ---"
 }
 
-ensure_dir() {
-    local dir="$1"
-    if [ ! -d "$dir" ]; then
-        mkdir -p "$dir" || {
-            echo "❌ 无法创建目录: $dir" >&2
-            return 1
-        }
-    fi
-    return 0
-}
-
-get_extension() {
-    local file="$1"
-    echo "${file##*.}" | tr '[:upper:]' '[:lower:]'
-}
-
-get_basename() {
-    local file="$1"
-    basename "${file%.*}"
-}
-
-validate_path() {
-    local path="$1"
-    if [[ "$path" =~ \.\./|\\\||\; ]]; then
-        echo "❌ 不安全的路径: $path" >&2
-        return 1
-    fi
-    return 0
-}
-
-validate_file() {
-    local file="$1"
-    
-    if [ ! -f "$file" ]; then
-        echo "❌ 文件不存在: $file" >&2
-        return 1
-    fi
-    
-    if [ ! -r "$file" ]; then
-        echo "❌ 文件不可读: $file" >&2
-        return 1
-    fi
-    
-    validate_path "$file"
-}
-
-check_file_size() {
-    local file="$1"
-    local max_size_mb=${2:-100}
-    local size_mb=$(du -m "$file" 2>/dev/null | cut -f1)
-    
-    if [ -z "$size_mb" ]; then
-        echo "❌ 无法获取文件大小: $file" >&2
-        return 1
-    fi
-    
-    if [ $size_mb -gt $max_size_mb ]; then
-        echo "⚠️ 文件较大 (${size_mb}MB)" >&2
-        return 1
-    fi
-    return 0
-}
-
-generate_unique_name() {
-    local base_name="$1"
-    local extension="$2"
-    local output_dir="$3"
-    
-    if [ -z "$base_name" ]; then
-        base_name="file_$(date +%Y%m%d_%H%M%S)"
-    fi
-    
-    local file_path="$output_dir/${base_name}${extension}"
-    local counter=1
-    
-    while [ -e "$file_path" ]; do
-        file_path="$output_dir/${base_name}_${counter}${extension}"
-        ((counter++))
-    done
-    
-    echo "$file_path"
-}
-
-retry_command() {
-    local max_attempts=3
-    local attempt=1
-    
-    while [ $attempt -le $max_attempts ]; do
-        if "$@"; then
-            return 0
-        fi
-        echo "⚠️ 第 $attempt 次尝试失败，正在重试..." >&2
-        ((attempt++))
-        sleep 1
-    done
-    
-    echo "❌ 命令执行失败，已重试 $max_attempts 次" >&2
-    return 1
-}
-
-check_command() {
-    local cmd="$1"
-    if ! command -v "$cmd" &> /dev/null; then
-        echo "❌ $cmd 未安装" >&2
-        return 1
-    fi
-    return 0
-}
-
-create_temp_dir() {
-    mktemp -d
-}
-
-cleanup_temp() {
-    local temp_dir="$1"
-    [ -d "$temp_dir" ] && rm -rf "$temp_dir"
-} 
+main "$@" 

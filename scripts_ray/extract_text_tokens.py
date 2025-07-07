@@ -1,55 +1,111 @@
 #!/usr/bin/env python3
+
 """
-计算文件的 token 数量
-安装: pip install tiktoken
+文本文件词元分析工具 - 提取、计数并分析文本文件中的词元
+版本: 2.0.0
+作者: tianli
 """
 
-import tiktoken
 import sys
-import os
+import argparse
+import re
+from pathlib import Path
+from collections import Counter
 
-def count_tokens(text, model="gpt-3.5-turbo"):
-    """计算文本的 token 数量"""
-    encodings = {
-        "gpt-4": "cl100k_base",
-        "gpt-3.5-turbo": "cl100k_base",
-        "text-davinci-003": "p50k_base",
-        "text-davinci-002": "p50k_base",
-        "davinci": "r50k_base",
-    }
-    
-    encoding_name = encodings.get(model, "cl100k_base")
-    encoding = tiktoken.get_encoding(encoding_name)
-    
-    num_tokens = len(encoding.encode(text))
-    return num_tokens
+from common_utils import (
+    show_success, show_error, show_warning, show_info,
+    validate_input_file, ensure_directory, ProgressTracker,
+    fatal_error, find_files_by_extension
+)
 
-def analyze_file(filename):
-    """分析文件的 token 信息"""
+SCRIPT_VERSION = "2.0.0"
+TOKEN_PATTERN = re.compile(r"[\w'-]+")
+
+def analyze_file(file_path: Path, min_len: int, min_freq: int) -> list:
+    if not validate_input_file(file_path):
+        return []
+
     try:
-        with open(filename, 'r', encoding='utf-8') as f:
-            content = f.read()
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            text = f.read().lower()
         
-        # 计算各种模型的 token 数
-        models = ["gpt-3.5-turbo", "gpt-4", "text-davinci-003"]
+        tokens = TOKEN_PATTERN.findall(text)
         
-        print(f"\n📄 文件: {filename}")
-        print(f"📏 大小: {os.path.getsize(filename) / 1024:.2f} KB")
-        print(f"📝 字符数: {len(content):,}")
-        print(f"📖 字数(估算): {len(content.split()):,}")
-        print("\n🔢 Token 数量:")
+        token_counts = Counter(
+            token for token in tokens
+            if len(token) >= min_len
+        )
         
-        for model in models:
-            tokens = count_tokens(content, model)
-            print(f"  - {model}: {tokens:,} tokens")
-            
+        return [
+            (token, count) for token, count in token_counts.items()
+            if count >= min_freq
+        ]
     except Exception as e:
-        print(f"❌ 错误: {e}")
+        show_error(f"处理文件失败 {file_path.name}: {e}")
+        return []
+
+def save_results(results: list, output_file: Path):
+    try:
+        df = pd.DataFrame(results, columns=['Token', 'Frequency'])
+        df.sort_values(by=['Frequency', 'Token'], ascending=[False, True], inplace=True)
+        df.to_csv(output_file, index=False)
+        show_success(f"结果已保存到: {output_file}")
+    except Exception as e:
+        fatal_error(f"保存结果失败: {e}")
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="文本文件词元分析工具",
+        epilog="示例: a_script.py docs/ --min-len 3 -o results.csv"
+    )
+    parser.add_argument("input_paths", nargs='+', help="一个或多个文件/目录路径")
+    parser.add_argument("-o", "--output", default="token_analysis.csv", help="输出CSV文件名")
+    parser.add_argument("--min-len", type=int, default=1, help="最小词元长度")
+    parser.add_argument("--min-freq", type=int, default=1, help="最小词元频率")
+    parser.add_argument("-r", "--recursive", action="store_true", help="递归处理目录")
+    parser.add_argument('--version', action='version', version=f'%(prog)s {SCRIPT_VERSION}')
+    args = parser.parse_args()
+
+    try:
+        import pandas as pd
+    except ImportError:
+        fatal_error("此脚本需要 pandas 库。请运行: pip install pandas")
+
+    files_to_process = find_files_by_extension(
+        args.input_paths,
+        ['txt', 'md'],
+        recursive=args.recursive
+    )
+
+    if not files_to_process:
+        show_warning("未找到任何支持的文本文件")
+        sys.exit(0)
+    
+    show_info(f"找到 {len(files_to_process)} 个文件进行分析...")
+    all_tokens = Counter()
+    progress = ProgressTracker(len(files_to_process))
+
+    for file_path in files_to_process:
+        progress.show(f"分析 {file_path.name}")
+        tokens = analyze_file(file_path, args.min_len, 1) # min_freq=1 for initial collection
+        all_tokens.update(dict(tokens))
+
+    final_results = [
+        (token, count) for token, count in all_tokens.items()
+        if count >= args.min_freq
+    ]
+
+    if not final_results:
+        show_warning("未找到符合条件的词元")
+        sys.exit(0)
+        
+    save_results(final_results, Path(args.output))
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("使用方法: python count_tokens.py <文件名>")
-        sys.exit(1)
-    
-    analyze_file(sys.argv[1])
+    # Add pandas to global scope for save_results
+    try:
+        import pandas as pd
+    except ImportError:
+        pass
+    main()
 

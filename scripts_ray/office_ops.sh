@@ -1,126 +1,47 @@
 #!/bin/bash
 
-source "$(dirname "${BASH_SOURCE[0]}")/convert_ops.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common_functions.sh"
 
-convert_doc_to_docx() {
-    local input="$1"
-    local output="$2"
-    convert_with_soffice "$input" "$output" "docx"
+readonly SCRIPT_VERSION="2.0.0"
+readonly SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+
+show_help() {
+    show_help_header "$0" "Office文件操作工具集"
+    echo "    extract_img        提取图片"
+    echo "    extract_tbl        提取表格"
+    echo "    convert            批量格式转换"
+    show_help_footer
 }
 
-convert_xls_to_xlsx() {
-    local input="$1"
-    local output="$2"
-    convert_with_soffice "$input" "$output" "xlsx"
-}
-
-convert_to_pdf() {
-    local input="$1"
-    local output="$2"
-    convert_with_soffice "$input" "$output" "pdf"
-}
-
-convert_docx_to_md() {
-    local input="$1"
-    local output="$2"
-    convert_with_pandoc "$input" "$output" "docx" "markdown"
-}
-
-convert_pptx_to_md() {
-    local input="$1"
-    local output="$2"
-    
-    if ! check_python_package "python-pptx"; then
-        return 1
+main() {
+    if [ $# -eq 0 ]; then
+        show_help
+        exit 1
     fi
-    
-    if retry_command "$PYTHON_PATH" -c "
-import sys
-from pptx import Presentation
-from pathlib import Path
 
-def convert_pptx_to_md(pptx_path, md_path):
-    prs = Presentation(pptx_path)
-    with open(md_path, 'w') as f:
-        for i, slide in enumerate(prs.slides, 1):
-            f.write(f'# Slide {i}\\n\\n')
-            for shape in slide.shapes:
-                if hasattr(shape, 'text') and shape.text:
-                    f.write(f'{shape.text}\\n\\n')
-            f.write('---\\n\\n')
+    local command="$1"
+    shift
 
-convert_pptx_to_md('$input', '$output')
-"; then
-        echo "✅ 已转换: $(basename "$input") -> $(basename "$output")"
-        return 0
+    local script_to_run=""
+    case "$command" in
+        extract_img) script_to_run="extract_images_office.py" ;;
+        extract_tbl) script_to_run="extract_tables_office.py" ;;
+        convert) script_to_run="convert_office_batch.sh" ;;
+        *) show_error "未知命令: $command"; show_help; exit 1 ;;
+    esac
+
+    local script_path="$SCRIPT_DIR/$script_to_run"
+    if [ ! -f "$script_path" ]; then
+        fatal_error "脚本不存在: $script_path"
+    fi
+
+    show_info "--- 正在执行: $script_to_run $* ---"
+    if [[ "$script_to_run" == *.py ]]; then
+        python3 "$script_path" "$@"
     else
-        echo "❌ 转换失败: $(basename "$input")"
-        return 1
+        bash "$script_path" "$@"
     fi
+    show_success "--- 执行完成 ---"
 }
 
-extract_tables_from_docx() {
-    local input="$1"
-    local output_dir="$2"
-    
-    if ! check_python_package "python-docx"; then
-        return 1
-    fi
-    
-    ensure_dir "$output_dir"
-    
-    if retry_command "$PYTHON_PATH" -c "
-import sys
-from docx import Document
-from pathlib import Path
-
-def extract_tables(docx_path, output_dir):
-    doc = Document(docx_path)
-    for i, table in enumerate(doc.tables, 1):
-        output_file = Path(output_dir) / f'table_{i}.csv'
-        with open(output_file, 'w') as f:
-            for row in table.rows:
-                f.write(','.join(cell.text for cell in row.cells) + '\\n')
-
-extract_tables('$input', '$output_dir')
-"; then
-        echo "✅ 已提取表格: $(basename "$input")"
-        return 0
-    else
-        echo "❌ 提取失败: $(basename "$input")"
-        return 1
-    fi
-}
-
-extract_tables_from_xlsx() {
-    local input="$1"
-    local output_dir="$2"
-    
-    if ! check_python_package "openpyxl"; then
-        return 1
-    fi
-    
-    ensure_dir "$output_dir"
-    
-    if retry_command "$PYTHON_PATH" -c "
-import sys
-import openpyxl
-from pathlib import Path
-
-def extract_sheets(xlsx_path, output_dir):
-    wb = openpyxl.load_workbook(xlsx_path, data_only=True)
-    for sheet in wb:
-        output_file = Path(output_dir) / f'{sheet.title}.csv'
-        with open(output_file, 'w') as f:
-            for row in sheet.rows:
-                f.write(','.join(str(cell.value or '') for cell in row) + '\\n')
-
-extract_sheets('$input', '$output_dir')
-"; then
-        echo "✅ 已提取工作表: $(basename "$input")"
-        return 0
-    else
-        echo "❌ 提取失败: $(basename "$input")"
-        return 1
-    fi
-} 
+main "$@" 
