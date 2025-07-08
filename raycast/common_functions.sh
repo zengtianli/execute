@@ -175,6 +175,12 @@ show_warning() {
     echo "⚠️ $1"
 }
 
+# 显示信息消息
+# 参数: $1 = 消息内容
+show_info() {
+    echo "ℹ️ $1"
+}
+
 # 显示处理中消息
 # 参数: $1 = 消息内容
 show_processing() {
