@@ -68,6 +68,21 @@ pip3 install -r scripts_ray/requirements.txt
 
 ---
 
+### 文件组织 (`organize_files.sh`)
+
+这是一个用于文件和目录维护的工具启动器。
+
+- **用法**: `./organize_files.sh <command> [args...]`
+- **命令**:
+  - `list`: 列出文件内容，支持递归、隐藏文件和扩展名排除 (调用 `list_contents.sh`)。
+  - `add-header`: 为多种类型的文件添加标准的注释头 (调用 `add_comment_header.sh`)。
+  - `format-md`: 格式化Markdown文件，如替换标点和添加标题编号 (调用 `format_md.sh`)。
+  - `move-by-prefix`: 根据文件名的数字前缀移动文件到对应编号的文件夹 (调用 `move_files_by_prefix.sh`)。
+  - `flatten-destructive`: 将子目录文件移到上层并删除空的子目录 (调用 `flatten_directory_destructive.sh`)。
+  - `flatten-keep`: 将子目录文件移到上层但保留子目录结构 (调用 `flatten_directory_keep_folders.sh`)。
+
+---
+
 ### 格式转换脚本
 
 这些脚本可以直接调用，用于单一类型的格式转换。所有转换脚本都支持 `-r` (递归) 和 `-h` (帮助) 选项。
@@ -138,4 +153,10 @@ pip3 install -r scripts_ray/requirements.txt
 
 ```bash
 ./scripts_ray/office_ops.sh convert -a -r
+```
+
+### 示例 5: 为项目中所有脚本添加文件头
+
+```bash
+./scripts_ray/organize_files.sh add-header ./scripts_ray
 ```
