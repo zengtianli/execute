@@ -132,7 +132,7 @@ main() {
     
     local output_dir
     if [ "$use_finder_mode" = true ]; then
-        output_dir=$(get_finder_directory)
+        output_dir=$(dirname "$first_file")
         validate_finder_directory "$output_dir" || exit 1
     else
         output_dir=$(determine_output_directory "$first_file" "$output_dir_specified")
