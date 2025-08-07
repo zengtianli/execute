@@ -20,7 +20,7 @@ SCRIPT_VERSION = "2.0.0"
 
 def check_dependencies():
     show_info("检查依赖项...")
-    if not check_python_packages(['python-pptx']):
+    if not check_python_packages(['pptx']):
         sys.exit(1)
     show_success("依赖检查完成")
 
@@ -33,9 +33,8 @@ def convert_pptx_to_md_single(file_path: Path, output_dir: Path) -> bool:
         return False
 
     base_name = get_file_basename(file_path)
-    md_output_dir = output_dir / base_name
-    ensure_directory(md_output_dir)
-    output_file = md_output_dir / f"{base_name}.md"
+    # 直接在原文件目录生成 .md 文件
+    output_file = file_path.parent / f"{base_name}.md"
     
     show_processing(f"转换 {file_path.name} 为 Markdown...")
 
@@ -56,11 +55,33 @@ def convert_pptx_to_md_single(file_path: Path, output_dir: Path) -> bool:
                 
                 md_file.write("---\n\n")
         
-        show_success(f"成功转换: {file_path.name} -> {output_file}")
+        show_success(f"成功转换: {file_path.name} -> {output_file.name}")
         return True
     except Exception as e:
         show_error(f"转换失败 {file_path.name}: {e}")
         return False
+
+def collect_pptx_files(input_paths: list, recursive: bool = False) -> list:
+    """从输入路径列表中收集所有PPTX文件"""
+    all_files = []
+    
+    for input_path in input_paths:
+        path_obj = Path(input_path)
+        
+        if path_obj.is_file():
+            # 如果是文件，直接检查扩展名
+            if path_obj.suffix.lower() == '.pptx':
+                all_files.append(path_obj)
+            else:
+                show_warning(f"跳过非PPTX文件: {path_obj.name}")
+        elif path_obj.is_dir():
+            # 如果是目录，查找其中的PPTX文件
+            found_files = find_files_by_extension(path_obj, 'pptx', recursive)
+            all_files.extend(found_files)
+        else:
+            show_error(f"路径不存在: {input_path}")
+    
+    return all_files
 
 def main():
     parser = argparse.ArgumentParser(description="PPTX转Markdown转换工具")
@@ -72,27 +93,22 @@ def main():
 
     check_dependencies()
 
-    output_dir = Path(args.output) if args.output else Path("./converted_md")
-    ensure_directory(output_dir)
-    show_info(f"输出目录: {output_dir.resolve()}")
-
-    files_to_process = find_files_by_extension(
-        args.input_paths,
-        ['pptx'],
-        recursive=args.recursive
-    )
+    files_to_process = collect_pptx_files(args.input_paths, args.recursive)
 
     if not files_to_process:
         show_warning("未找到任何PPTX文件")
         sys.exit(0)
 
     total_success = 0
-    progress = ProgressTracker(len(files_to_process))
+    progress = ProgressTracker()
 
     for file_path in files_to_process:
-        progress.show(f"处理 {file_path.name}")
-        if convert_pptx_to_md_single(file_path, output_dir):
+        show_processing(f"处理 {file_path.name}")
+        if convert_pptx_to_md_single(file_path, None):
             total_success += 1
+            progress.add_success()
+        else:
+            progress.add_failure()
             
     show_info("\n处理完成")
     show_success(f"总共成功转换了 {total_success} 个文件")
