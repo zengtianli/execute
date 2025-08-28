@@ -2,7 +2,7 @@
 # Raycast parameters
 # @raycast.schemaVersion 1
 # @raycast.title Yabai Float
-# @raycast.mode silent
+# @raycast.mode fullOutput
 # @raycast.icon 🪪
 # @raycast.packageName Custom
 # @raycast.description Toggle current window floating and center display
